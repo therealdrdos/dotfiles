@@ -15,7 +15,7 @@ Have fun!
 Just place the file in either "/etc/tmux.conf" or "~/.tmux.conf". Tmux will recognise it automatically.
 ** TPM
 1. Create the directory: "/.tmux/plugins"
-2. Run: src_sh{git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm}
+2. Run: =git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm=
 3. Open Tmux and install plugins with =prefix + I=.
 
 ** Errors
