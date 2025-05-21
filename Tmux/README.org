@@ -1,0 +1,25 @@
+#+TITLE: Tmux Configuration
+#+AUTHOR: DrDos
+#+DATE: 2025-05-21
+#+LANGUAGE: en
+#+OPTIONS:     toc:nil   ; kein automatisches Inhaltsverzeichnis
+#+STARTUP:     overview  ; Kapitel zunächst eingeklappt
+#+PROPERTY:    header-args :eval never-export
+
+This is the directory for Tmux Configuration. I use the Tmux Plugin Manager (TPM) as well as some plugins. I made this conf to don't interfere with Emacs, and to enable emacs-like behaviour in Tmux.
+
+Have fun!
+
+* Setup
+** General
+Just place the file in either "/etc/tmux.conf" or "~/.tmux.conf". Tmux will recognise it automatically.
+** TPM
+1. Create the directory: "/.tmux/plugins"
+2. Run: src_sh{git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm}
+3. Open Tmux and install plugins with =prefix + I=.
+
+** Errors
+*** TPM returns 1
+This is an issue related to tmux-mem-cpu-load. Install cmake to fix it or disable the plugin. Issue: https://github.com/thewtex/tmux-mem-cpu-load/issues/55
+
+
