@@ -6,7 +6,6 @@
 #+STARTUP:     overview  ; Kapitel zunächst eingeklappt
 #+PROPERTY:    header-args :eval never-export
 
-* DrDos's Dotfiles
 Here is the place I put my config files. I will add a content to this readme including directory structure once there is more data to write about.
 
 * Rights to use
