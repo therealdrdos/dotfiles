@@ -6,8 +6,8 @@
 #+STARTUP:     overview  ; Kapitel zunächst eingeklappt
 #+PROPERTY:    header-args :eval never-export
 
-Here is the place I put my config files. I will add a content to this readme including directory structure once there is more data to write about.
+Here is the place where I put my config files. I will add content to this readme including directory structure, once there is more data to write about.
 
 * Rights to use
-Feel free to include the dotfiles in your projects, or to get inspiration from them. However, I wont provide any warranty on the quality of them.
-They are my personal files and I try to keep them up to date with general security/implementation recommendations, but there is no garantee on that.
+Feel free to include the dotfiles in your projects or to get inspiration from them. However, I won't provide any warranty on the quality of them.
+They are my personnel files and I try to keep them up to date with general security/implementation recommendations, but there is no guarantee on that.
