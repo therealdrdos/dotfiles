@@ -1,9 +1,8 @@
 #+TITLE: Tmux Configuration
 #+AUTHOR: DrDos
-#+DATE: 2025-05-21
+#+DATE: 2025-07-15
 #+LANGUAGE: en
-#+OPTIONS:     toc:nil   ; kein automatisches Inhaltsverzeichnis
-#+STARTUP:     overview  ; Kapitel zunächst eingeklappt
+#+OPTIONS:     toc:nil
 #+PROPERTY:    header-args :eval never-export
 
 This is the directory for Tmux Configuration. I use the Tmux Plugin Manager (TPM) as well as some plugins. I made this conf to don't interfere with Emacs, and to enable emacs-like behaviour in Tmux.
@@ -12,10 +11,10 @@ Have fun!
 
 * Setup
 ** General
-Just place the file in either =/etc/tmux.conf= or =~/.tmux.conf=. Tmux will recognise it automatically.
+Just place the file in =~/.config/tmux/tmux.conf=. Tmux will recognize it automatically. You can of course put it somewhere else. However, please note that some paths in the file are hard-coded, so change them accordingly.
 ** TPM
-1. Create the directory: =/.tmux/plugins=
-2. Run: =git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm=
+1. Create the directory: =~/.config/tmux/plugins=
+2. Run: =git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm=
 3. Open Tmux and install plugins with =prefix + I=
 
 ** Errors

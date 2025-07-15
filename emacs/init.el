@@ -61,7 +61,7 @@
 (setq visible-bell t) ; flash when the bell rings
 (set-face-attribute 'hl-line nil :background "#D3D3D3") ; line hl light grey
 (setq global-auto-revert-non-file-buffers t) ; refresh dired and co on changes automatically
-(setq backup-directory-alist '((".*" . "~/.emacs.d/EmacsBackupFiles"))) ; put all backup files in another location
+(setq backup-directory-alist '((".*" . "~/.config/emacs/EmacsBackupFiles"))) ; put all backup files in another location
 (global-set-key [escape] 'keyboard-escape-quit) ; Escape Minibuffer with one not three escape presses
 ;; Minibuffer history
 (setq history-length 25)
@@ -306,7 +306,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages '(flycheck-irony nerd-icons hl-todo solarized-theme)))
+ '(package-selected-packages nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
