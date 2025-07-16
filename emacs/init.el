@@ -299,6 +299,10 @@
   :hook (rust-mode . flycheck-rust-setup))
 
 
+;;;; Website export functionality ---------------------------------------
+(load (expand-file-name "website-publish.el" user-emacs-directory))
+
+
 ;;;; Custom-Set-Variables added by packages -----------------------------
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
