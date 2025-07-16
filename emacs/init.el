@@ -39,7 +39,6 @@
 ;;   - eslint (JavaScript)
 ;; - For Language Support:
 ;;   - cmake (For C/C++)
-;;   - irony-server (For C/C++)
 ;;   - devscripts (Only on Debian, visit https://github.com/cuonglm/flycheck-checkbashisms for more)
 ;;   - clang-tidy (For C/C++)
 ;;   - tidy (For HTML)

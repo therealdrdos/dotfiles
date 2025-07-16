@@ -5,7 +5,7 @@
 #+OPTIONS:     toc:nil   ; kein automatisches Inhaltsverzeichnis
 #+PROPERTY:    header-args :eval never-export
 
-Here is the place where I put my config files.
+This is the place where I store my personal config files.
 
 * Directory layout
 #+begin_example
@@ -17,7 +17,7 @@ dotfiles/
 
 * Rights to use
 Feel free to include the dotfiles in your projects or to get inspiration from them. However, I won't provide any warranty on the quality of them.
-They are my personnel files and I try to keep them up to date with general security/implementation recommendations, but there is no guarantee on that.
+They are my personal files and I try to keep them up to date with general security/implementation recommendations, but there is no guarantee on that.
 
 * Quick start
 #+begin_src bash
