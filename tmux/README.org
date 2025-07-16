@@ -14,7 +14,7 @@ Have fun!
 - Behavioral improvements
 - Convenience features like mouse support and a few plugins
 - Key changes:
-| Original                 | New key                 |
+| Function                 | New key                 |
 |--------------------------+-------------------------|
 | prefix                   | =C-g=                   |
 | split vertical           | =v=                     |
