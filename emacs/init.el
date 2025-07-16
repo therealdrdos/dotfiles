@@ -1,7 +1,7 @@
 ;;; init.el --- DrDos Emacs Configuration File -*- lexical-binding: t; coding: utf-8; -*-
 
 ;; Copyright (C) 2025  DrDos
-;; Author:     DrDos <user173@dr-dos.org>
+;; Author: DrDos <user173@dr-dos.org>
 ;; This file is NOT part of GNU Emacs.
 
 ;; Redistribution and use in source and binary forms, with or without
