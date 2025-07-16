@@ -36,6 +36,6 @@ Then: Open Tmux and install plugins with =prefix + I=.
 *** TPM returns 1
 This is an issue related to tmux-mem-cpu-load. Install cmake to fix it or disable the plugin. Issue: https://github.com/thewtex/tmux-mem-cpu-load/issues/55
 
-*** Emacs does not recognize the config file
+*** Tmux does not recognize the config file
 Check your =$XDG_CONFIG_HOME=.
 
