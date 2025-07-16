@@ -51,11 +51,11 @@ website [[https://www.dr-dos.org]].  It lives in the config root and is loaded i
 #+end_src
 
 ** Quick overview
-- **`my/site-root`** – single variable that defines the project root. Set it to match the websites project directory.
-- **External HTML template**
-  *template.html* in the project root, !include placeholders
+- *`my/site-root`* – single variable that defines the project root. Set it to match the websites project directory.
+- *External HTML template*  
+  *template.html* in the project root, !include placeholders  
   `{{title}}`, `{{description}}`, `{{tags}}`, `{{contents}}`, `{{year}}`.
-- **Publish components**
+- *Publish components*
 
   | Name    | Purpose                            | Output directory    |
   |---------+------------------------------------+---------------------|
@@ -66,13 +66,13 @@ website [[https://www.dr-dos.org]].  It lives in the config root and is loaded i
   | txt     | Plain‑text clone (+ ANSI styling)  | *txt/*              |
   | website | Builds everything of the above     |                     |
 
-- **How to build**
+ - *How to build*
   #+begin_src emacs-lisp
   M-x org-publish RET website RET   ;; full site (HTML + RSS + TXT)
   M-x org-publish RET posts   RET   ;; blog posts only
   #+end_src
 
-- **ANSI colour filter**
+- *ANSI colour filter*
   After `ox-ascii` export, **bold**, /italic/, and _underline_ are wrapped in
   simple escape sequences so `curl` output is pleasantly formatted.
 
