@@ -1,13 +1,27 @@
 #+TITLE: DrDos's Dotfiles
 #+AUTHOR: DrDos
-#+DATE: 2025-05-21
+#+DATE: 2025-07-16
 #+LANGUAGE: en
 #+OPTIONS:     toc:nil   ; kein automatisches Inhaltsverzeichnis
-#+STARTUP:     overview  ; Kapitel zunächst eingeklappt
 #+PROPERTY:    header-args :eval never-export
 
-Here is the place where I put my config files. I will add content to this readme including directory structure, once there is more data to write about.
+Here is the place where I put my config files.
+
+* Directory layout
+#+begin_example
+dotfiles/
+├── emacs/           Emacs configuration
+├── tmux/            tmux configuration
+└── README.org       this file
+#+end_example
 
 * Rights to use
 Feel free to include the dotfiles in your projects or to get inspiration from them. However, I won't provide any warranty on the quality of them.
 They are my personnel files and I try to keep them up to date with general security/implementation recommendations, but there is no guarantee on that.
+
+* Quick start
+#+begin_src bash
+  git clone https://github.com/therealdrdos/dotfiles ~/Somewhereonyourmachine
+#+end_src  
+  Consult the readme files for each conf you want to use, there may be specific instructions.
+  Or use some app like GNU stow to manage them.
