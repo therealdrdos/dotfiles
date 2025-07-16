@@ -70,6 +70,7 @@ BACKEND – What backend is the caller
                        default-directory))
          (abs-entry  (expand-file-name entry base-dir))
          (filename   (file-name-nondirectory entry))
+	 (link       (concat "posts/" filename))
          (title      (org-publish-find-title entry project))
          (date       (org-publish-find-date  entry project))
          (description (with-temp-buffer
@@ -80,7 +81,7 @@ BACKEND – What backend is the caller
                           (match-string 1)))))
     (format "%s [[file:%s][%s]] – %s"
             (format-time-string "%Y-%m-%d" date)
-            filename title (or description ""))))
+            link title (or description ""))))
 
 ;; ANSI color post-processing for txt export
 (defun my/add-ansi-colors (filename)
@@ -108,6 +109,15 @@ BACKEND – What backend is the caller
     (my/add-ansi-colors outfile)
     outfile))
 
+;; Builds the blog site with intro text
+(defun my/sitemap-with-intro (title list)
+  "Return TITLE, custom intro text and the automatic LIST of posts."
+  (concat
+   "#+TITLE: " title ""
+   "Welcome to my blog – here you'll find all posts.\\"
+   "RSS feed: [[file:posts/blog.xml][blog.xml]].\\  "
+   (org-list-to-org list)))          ; convert LIST to Org list markup
+
 ;; Org-publish project definition
 (setq org-publish-project-alist
       `(
@@ -134,7 +144,8 @@ BACKEND – What backend is the caller
          :sitemap-filename "../blog.org"
          :sitemap-title "Blog"
          :sitemap-sort-files anti-chronologically
-         :sitemap-format-entry my/sitemap-entry)
+         :sitemap-format-entry my/sitemap-entry
+	 :sitemap-function     my/sitemap-with-intro)
 
         ;; RSS feed for posts
         ("rss"
