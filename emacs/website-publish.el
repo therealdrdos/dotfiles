@@ -58,7 +58,8 @@ BACKEND – What backend is the caller
                ("description" description)
                ("year" year)
                ("tags" (or tags ""))
-               ("contents" output))))
+               ("contents" output))
+	     nil t))
 	  (buffer-string)))
   output))
 (setq org-export-filter-final-output-functions '(my/html-template))
@@ -113,10 +114,11 @@ BACKEND – What backend is the caller
 (defun my/sitemap-with-intro (title list)
   "Return TITLE, custom intro text and the automatic LIST of posts."
   (concat
-   "#+TITLE: " title ""
-   "Welcome to my blog – here you'll find all posts.\\"
-   "RSS feed: [[file:posts/blog.xml][blog.xml]].\\  "
-   (org-list-to-org list)))          ; convert LIST to Org list markup
+   "#+TITLE: " title "\n\n "
+   "Welcome to my blog – here you'll find all posts. "
+   "RSS feed: [[file:posts/blog.xml][blog.xml]]\n\n  "
+   
+   (org-list-to-org list)))
 
 ;; Org-publish project definition
 (setq org-publish-project-alist
