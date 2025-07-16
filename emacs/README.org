@@ -24,7 +24,7 @@ Maybe I forgot to update this list, the document itself will always be up to dat
 - Linters you need (currently ansible-lint, pylint, eslint configured)
 - Language-support-packages (currently cmake, clang-tidy, tidy, devscripts (debian))
 
-Notice that the nerd font is hard coded in the file, so if you use another one then change the reference accordingly
+Notice that the nerd font is hard coded in the file, so if you use another one then change the reference accordingly.
 ** General
 #+begin_src bash
   git clone https://github.com/therealdrdos/dotfiles ~/Somewhereonyourmachine
@@ -37,7 +37,7 @@ First start triggers MELPA package installation and initial setup.
 *** Treesitter Files missing
 You need to fetch the current files. Run:
 #+begin_src emacs-lisp
-M-x treesit-install-language-grammar RET YourLanguage RET
+M-x treesit-install-language-grammar RET YourDesiredLanguage RET
 #+end_src
 *** Emacs does not recognize the config file
-Check your =$XDG_CONFIG_HOME=
+Check your =$XDG_CONFIG_HOME=.

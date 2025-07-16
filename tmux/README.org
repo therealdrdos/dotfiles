@@ -9,7 +9,11 @@ This is the directory for Tmux Configuration. I use the Tmux Plugin Manager (TPM
 
 Have fun!
 
-* Key changes
+* Changes
+- Better design and modeline
+- Behavioral improvements
+- Convenience features like mouse support and a few plugins
+- Key changes:
 | Original                 | New key                 |
 |--------------------------+-------------------------|
 | prefix                   | =C-g=                   |
@@ -17,10 +21,6 @@ Have fun!
 | split horizontal         | =h=                     |
 | reload config            | =C-g r=                 |
 | navigate panes ←/→/↑/↓ | =C-b / C-f / C-p / C-n= |
-
-- Better design and modeline
-- Behavioral improvements
-- Convenience features like mouse support and a few plugins
   
 * Setup
 ** General
@@ -30,10 +30,12 @@ Just place the file in =~/.config/tmux/tmux.conf=. Tmux will recognize it automa
   mkdir -p ~/.config/tmux/plugins
   git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tp
 #+end_src
-Then: Open Tmux and install plugins with =prefix + I=
+Then: Open Tmux and install plugins with =prefix + I=.
 
 ** Errors
 *** TPM returns 1
 This is an issue related to tmux-mem-cpu-load. Install cmake to fix it or disable the plugin. Issue: https://github.com/thewtex/tmux-mem-cpu-load/issues/55
 
+*** Emacs does not recognize the config file
+Check your =$XDG_CONFIG_HOME=.
 
