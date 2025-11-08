@@ -41,8 +41,9 @@ This sets $COLUMNS/$LINES correctly."
   :group 'terminal-fix)
 
 (defcustom terminal-fix-terminal-modes
-  '(vterm-mode term-mode ansi-term eat-mode)
-  "Major modes considered true terminals whose PTY size should be synced."
+  '(vterm-mode term-mode eat-mode)
+  "Major modes considered true terminals whose PTY size should be synced.
+Note: ansi-term is not a mode, it creates term-mode buffers."
   :type '(repeat symbol)
   :group 'terminal-fix)
 
@@ -133,26 +134,27 @@ This function is added as a buffer-local hook to `window-size-change-functions'.
 
 (defun terminal-fix--add-hooks ()
   "Attach hooks to terminal and shell-like modes."
-  (dolist (hk '(vterm-mode-hook term-mode-hook ansi-term-mode-hook))
-    (add-hook hk #'terminal-fix--enable-buffer)
-    (add-hook hk #'terminal-fix--visual-cleanup))
+  ;; True terminal modes get full treatment (visual-cleanup is called by enable-buffer).
+  (dolist (hk '(vterm-mode-hook term-mode-hook))
+    (add-hook hk #'terminal-fix--enable-buffer))
   ;; EAT is optional; add after load to avoid hard dependency.
   (with-eval-after-load 'eat
-    (add-hook 'eat-mode-hook #'terminal-fix--enable-buffer)
-    (add-hook 'eat-mode-hook #'terminal-fix--visual-cleanup))
+    (add-hook 'eat-mode-hook #'terminal-fix--enable-buffer))
   ;; Shell-ish modes get visual cleanup only.
   (dolist (hk '(shell-mode-hook eshell-mode-hook comint-mode-hook))
     (add-hook hk #'terminal-fix--visual-cleanup)))
 
 (defun terminal-fix--remove-hooks ()
   "Detach hooks from terminal and shell-like modes."
-  (dolist (hk '(vterm-mode-hook term-mode-hook ansi-term-mode-hook
-                shell-mode-hook eshell-mode-hook comint-mode-hook))
-    (remove-hook hk #'terminal-fix--enable-buffer)
+  ;; True terminal modes.
+  (dolist (hk '(vterm-mode-hook term-mode-hook))
+    (remove-hook hk #'terminal-fix--enable-buffer))
+  ;; Shell-ish modes.
+  (dolist (hk '(shell-mode-hook eshell-mode-hook comint-mode-hook))
     (remove-hook hk #'terminal-fix--visual-cleanup))
+  ;; EAT if loaded.
   (with-eval-after-load 'eat
-    (remove-hook 'eat-mode-hook #'terminal-fix--enable-buffer)
-    (remove-hook 'eat-mode-hook #'terminal-fix--visual-cleanup)))
+    (remove-hook 'eat-mode-hook #'terminal-fix--enable-buffer)))
 
 ;;;###autoload
 (define-minor-mode terminal-fix-mode
