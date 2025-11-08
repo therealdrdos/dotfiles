@@ -1,6 +1,6 @@
 ;;; terminal-fix.el --- Fix PTY/window width mismatches in Emacs terminals -*- lexical-binding: t; -*-
-;; Author: You
-;; Version: 0.1
+;; Author: therealdrdos
+;; Version: 1.0
 ;; Package-Requires: ()
 ;; Keywords: terminals, pty, convenience
 ;; URL: n/a
@@ -82,9 +82,10 @@
              (terminal-fix--buffer-is-pty-terminal)
              (get-buffer-process (current-buffer)))
     ;; Ensure $LINES/$COLUMNS and ioctl(TIOCGWINSZ) reflect the visible text area.
-    (set-process-window-size (get-buffer-process (current-buffer))
-                             (window-body-height)
-                             (window-body-width))))
+    (ignore-errors
+      (set-process-window-size (get-buffer-process (current-buffer))
+                               (window-body-height)
+                               (window-body-width)))))
 
 (defun terminal-fix-apply-now ()
   "Apply UI cleanup and force a PTY size sync in the current buffer."
