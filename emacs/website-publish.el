@@ -12,15 +12,25 @@
 (require 'ox-rss)
 (require 'subr-x) ;; for when-let
 
+(defvar my/--site-root-directory nil
+  "Cached website project root directory.
+Internal variable, use `my/site-root' to access.
+Reset with `my/site-root-reset'.")
+
 (defun my/site-root ()
   "Find and return website project root by searching for template.html.
 Searches current directory and all parent directories.
 Returns the directory path with trailing slash.
-Signals an error if template.html cannot be found."
-  (let ((root (locate-dominating-file default-directory "template.html")))
-    (if root
-        (file-name-as-directory (expand-file-name root))
-      (error "Website project not found!
+Signals an error if template.html cannot be found.
+
+Result is memoized for performance.  Use `my/site-root-reset' to
+invalidate the cache after changing directories."
+  (or my/--site-root-directory
+      (setq my/--site-root-directory
+            (let ((root (locate-dominating-file default-directory "template.html")))
+              (if root
+                  (file-name-as-directory (expand-file-name root))
+                (error "Website project not found!
 
 Cannot find template.html in current directory or any parent directory.
 Current directory: %s
@@ -29,7 +39,15 @@ To fix this:
   1. Navigate to your website project directory (where template.html exists)
   2. Or run M-x cd RET /path/to/your/website/ RET
   3. Then try M-x org-publish RET website RET again"
-             default-directory))))
+                       default-directory))))))
+
+(defun my/site-root-reset ()
+  "Clear cached website root directory.
+Call this after changing directories to force a fresh search."
+  (interactive)
+  (setq my/--site-root-directory nil)
+  (when (called-interactively-p 'any)
+    (message "Website root cache cleared")))
 
 (defun my/site-path (sub)
   "Return absolute path of SUB inside website root.
@@ -218,6 +236,7 @@ This allows publishing from any directory containing template.html."
 (defun my/refresh-publish-alist-advice (&rest _args)
   "Refresh `org-publish-project-alist' before publishing.
 This ensures the correct website root is used based on current directory."
+  (my/site-root-reset)
   (my/setup-publish-alist))
 
 (advice-add 'org-publish :before #'my/refresh-publish-alist-advice)
