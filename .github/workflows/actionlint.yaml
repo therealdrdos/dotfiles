@@ -31,4 +31,4 @@ jobs:
 
       - name: Run actionlint
         run: |
-          actionlint
+          actionlint -verbose
