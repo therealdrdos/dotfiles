@@ -1,0 +1,34 @@
+---
+name: TOML Syntax Check
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.toml'
+      - '.github/workflows/lint-toml.yaml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/*.toml'
+      - '.github/workflows/lint-toml.yaml'
+
+jobs:
+  toml-check:
+    name: Validate TOML syntax
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Install taplo
+        run: |
+          curl -fsSL https://github.com/tamasfe/taplo/releases/latest/download/taplo-linux-x86_64.gz \
+            | gunzip -c - | install -m 755 /dev/stdin /usr/local/bin/taplo
+
+      - name: Check TOML files
+        run: |
+          taplo check alacritty/*.toml alacritty/**/*.toml
