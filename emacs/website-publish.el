@@ -12,12 +12,29 @@
 (require 'ox-rss)
 (require 'subr-x) ;; for when-let
 
-(defvar my/site-root (expand-file-name "~/Dokumente/git/simonswebsite/")
-  "Root directory of the website project.  Must end with a slash.")
+(defun my/site-root ()
+  "Find and return website project root by searching for template.html.
+Searches current directory and all parent directories.
+Returns the directory path with trailing slash.
+Signals an error if template.html cannot be found."
+  (let ((root (locate-dominating-file default-directory "template.html")))
+    (if root
+        (file-name-as-directory (expand-file-name root))
+      (error "Website project not found!
+
+Cannot find template.html in current directory or any parent directory.
+Current directory: %s
+
+To fix this:
+  1. Navigate to your website project directory (where template.html exists)
+  2. Or run M-x cd RET /path/to/your/website/ RET
+  3. Then try M-x org-publish RET website RET again"
+             default-directory))))
 
 (defun my/site-path (sub)
-  "Return absolute path of SUB inside `my/site-root'."
-  (expand-file-name sub my/site-root))
+  "Return absolute path of SUB inside website root.
+Website root is determined dynamically by searching for template.html."
+  (expand-file-name sub (my/site-root)))
 
 ;; Global export parameters
 (setq org-html-doctype "html5")
@@ -48,6 +65,14 @@ BACKEND – What backend is the caller
                      (mapconcat (lambda (tag)
 				  (format "<a class=\"tag\" href=\"/blog/blog.html#%s\">#%s</a>" tag tag))
 				filetags " "))))
+        ;; Verify template file exists before attempting to read it
+        (unless (file-exists-p template-file)
+          (error "template.html not found at: %s
+
+This file is required for HTML export. Please ensure:
+  1. You are in the correct website directory
+  2. template.html exists in the website root
+  3. The file has not been moved or deleted" template-file))
 	(with-temp-buffer
 	  (insert-file-contents template-file)
 	  (goto-char (point-min))
@@ -120,68 +145,82 @@ BACKEND – What backend is the caller
    
    (org-list-to-org list)))
 
-;; Org-publish project definition
-(setq org-publish-project-alist
-      `(
-        ;; Main static pages (index, aboutme, pgp, blog overview)
-        ("pages"
-         :base-directory ,(my/site-path "src")
-         :base-extension "org"
-         :exclude "blog/posts/.*"
-         :publishing-directory ,(my/site-path "site")
-         :recursive t
-         :publishing-function org-html-publish-to-html
-         :with-author nil)
+;; Setup function to dynamically build org-publish-project-alist
+(defun my/setup-publish-alist ()
+  "Set up `org-publish-project-alist' with current website root.
+This allows publishing from any directory containing template.html."
+  (setq org-publish-project-alist
+        `(
+          ;; Main static pages (index, aboutme, pgp, blog overview)
+          ("pages"
+           :base-directory ,(my/site-path "src")
+           :base-extension "org"
+           :exclude "blog/posts/.*"
+           :publishing-directory ,(my/site-path "site")
+           :recursive t
+           :publishing-function org-html-publish-to-html
+           :with-author nil)
 
-        ;; Blog posts
-        ("posts"
-         :base-directory ,(my/site-path "src/blog/posts") ;
-         :publishing-directory ,(my/site-path "site/blog/posts")
-         :base-extension "org"
-         :recursive t
-         :publishing-function org-html-publish-to-html
-         :with-author nil
-         :section-numbers nil
-         :auto-sitemap t
-         :sitemap-filename "../blog.org"
-         :sitemap-title "Blog"
-         :sitemap-sort-files anti-chronologically
-         :sitemap-format-entry my/sitemap-entry
-	 :sitemap-function     my/sitemap-with-intro)
+          ;; Blog posts
+          ("posts"
+           :base-directory ,(my/site-path "src/blog/posts")
+           :publishing-directory ,(my/site-path "site/blog/posts")
+           :base-extension "org"
+           :recursive t
+           :publishing-function org-html-publish-to-html
+           :with-author nil
+           :section-numbers nil
+           :auto-sitemap t
+           :sitemap-filename "../blog.org"
+           :sitemap-title "Blog"
+           :sitemap-sort-files anti-chronologically
+           :sitemap-format-entry my/sitemap-entry
+           :sitemap-function my/sitemap-with-intro)
 
-        ;; RSS feed for posts
-        ("rss"
-         :base-directory ,(my/site-path "src/blog")
-         :publishing-directory ,(my/site-path "site/blog/posts")
-         :base-extension "org"
-	 :include ("blog.org")
-         :publishing-function org-rss-publish-to-rss
-         :html-link-home "https://www.dr-dos.org/blog/posts"
-         :html-link-use-abs-url t
-         :rss-extension "xml"
-         :rss-image-url "https://www.dr-dos.org/static/avatar.png"
-         :rss-description "Latest blog posts")
+          ;; RSS feed for posts
+          ("rss"
+           :base-directory ,(my/site-path "src/blog")
+           :publishing-directory ,(my/site-path "site/blog/posts")
+           :base-extension "org"
+           :include ("blog.org")
+           :publishing-function org-rss-publish-to-rss
+           :html-link-home "https://www.dr-dos.org/blog/posts"
+           :html-link-use-abs-url t
+           :rss-extension "xml"
+           :rss-image-url "https://www.dr-dos.org/static/avatar.png"
+           :rss-description "Latest blog posts")
 
-        ;; Static assets (CSS, images …)
-        ("static"
-         :base-directory ,(my/site-path "static")
-         :base-extension "css\\|png\\|jpg\\|svg\\|gif\\|webp"
-         :publishing-directory ,(my/site-path "site")
-         :recursive t
-         :publishing-function org-publish-attachment)
+          ;; Static assets (CSS, images …)
+          ("static"
+           :base-directory ,(my/site-path "static")
+           :base-extension "css\\|png\\|jpg\\|svg\\|gif\\|webp"
+           :publishing-directory ,(my/site-path "site")
+           :recursive t
+           :publishing-function org-publish-attachment)
 
-        ;; Plain‑text variant for terminal displayability
-        ("txt"
-         :base-directory ,(my/site-path "src")
-         :publishing-directory ,(my/site-path "site/txt")
-         :base-extension "org"
-         :recursive t
-         :publishing-function my/org-ascii-publish-with-ansi
-         :body-only t
-         :ascii-text-width 80)
+          ;; Plain‑text variant for terminal displayability
+          ("txt"
+           :base-directory ,(my/site-path "src")
+           :publishing-directory ,(my/site-path "site/txt")
+           :base-extension "org"
+           :recursive t
+           :publishing-function my/org-ascii-publish-with-ansi
+           :body-only t
+           :ascii-text-width 80)
 
-        ;; Build everything together
-        ("website" :components ("pages" "posts" "rss" "static" "txt"))))
+          ;; Build everything together
+          ("website" :components ("pages" "posts" "rss" "static" "txt")))))
+
+;; Advice to refresh project alist before publishing
+(defun my/refresh-publish-alist-advice (&rest _args)
+  "Refresh `org-publish-project-alist' before publishing.
+This ensures the correct website root is used based on current directory."
+  (my/setup-publish-alist))
+
+(advice-add 'org-publish :before #'my/refresh-publish-alist-advice)
+
+;; Initial setup
+(my/setup-publish-alist)
 
 
 (provide 'website-publish)
