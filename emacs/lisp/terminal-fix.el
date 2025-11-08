@@ -84,16 +84,19 @@ Applies to terminal buffers."
     ;; Do not soft-wrap terminal lines.
     (setq-local truncate-lines t)))
 
-(defun terminal-fix--sync-size ()
-  "Set the PTY size of the current process buffer to the window-body height/width."
+(defun terminal-fix--sync-size (&optional window)
+  "Set the PTY size of the current process buffer to the window-body height/width.
+If WINDOW is nil, use any window displaying the current buffer."
   (when (and terminal-fix-sync-pty
              (terminal-fix--buffer-is-pty-terminal)
              (get-buffer-process (current-buffer)))
-    ;; Ensure $LINES/$COLUMNS and ioctl(TIOCGWINSZ) reflect the visible text area.
-    (ignore-errors
-      (set-process-window-size (get-buffer-process (current-buffer))
-                               (window-body-height)
-                               (window-body-width)))))
+    (let ((win (or window (get-buffer-window (current-buffer)))))
+      (when win
+        ;; Ensure $LINES/$COLUMNS and ioctl(TIOCGWINSZ) reflect the visible text area.
+        (ignore-errors
+          (set-process-window-size (get-buffer-process (current-buffer))
+                                   (window-body-height win)
+                                   (window-body-width win)))))))
 
 (defun terminal-fix-apply-now ()
   "Apply UI cleanup and force a PTY size sync in the current buffer."
@@ -104,9 +107,10 @@ Applies to terminal buffers."
 (defun terminal-fix--window-size-handler (frame)
   "Sync PTY size when window size change.
 This function is added as a buffer-local hook to `window-size-change-functions'."
-  (when (and terminal-fix--hook-installed
-             (get-buffer-window (current-buffer) frame))
-    (terminal-fix--sync-size)))
+  (when terminal-fix--hook-installed
+    (let ((win (get-buffer-window (current-buffer) frame)))
+      (when win
+        (terminal-fix--sync-size win)))))
 
 (defun terminal-fix--enable-buffer ()
   "Enable terminal-fix behavior for the current terminal buffer."
