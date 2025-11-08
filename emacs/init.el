@@ -32,7 +32,7 @@
 ;; Use C-M-x to evaluate while editing
 ;; Use C-M-i to get autocompletion inside the editor buffer
 ;; Packages to install system-wide for this config to work:
-;; - A nerd font (currenctly using UbuntuSans Nerd Font)
+;; - A nerd font (currenctly using JetBrains Mono NF)
 ;; - Linters:
 ;;   - ansible-lint (Ansible)
 ;;   - pylint (Python)
@@ -104,10 +104,14 @@
 ;; Nerd-Font
 (use-package nerd-icons
   :custom
-   (nerd-icons-font-family "UbuntuSans Nerd Font")
+   (nerd-icons-font-family "JetBrains Mono Nerd Font")
    )
 
-;; Custom-Modeline (From Doom project)
+;; Nerd Font
+(add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font Mono-12"))
+(set-face-attribute 'default nil :family "JetBrainsMono Nerd Font Mono" :height 110)
+
+;; Custom-Modeline (from Doom project)
 (use-package doom-modeline
   :ensure t
   :init (doom-modeline-mode 1))
