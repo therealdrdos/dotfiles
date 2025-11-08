@@ -1,0 +1,52 @@
+### DrDos's lsDeluxe (lsd) config
+###
+### Setup:
+### $ ln -s /path/to/dotfiles/lsd/config.yaml ~/.config/lsd/config.yaml
+### $ ln -s /path/to/dotfiles/lsd/colors.yaml ~/.config/lsd/colors.yaml
+###
+### Colors: Based on https://github.com/bradleyhop/lsd-solarized-theme
+###         with custom user/group color modifications (see colors.yaml)
+
+
+# Uses colors.yaml which should be solarized-light
+color:
+  theme: custom
+  when: auto
+
+# icons: show when a Nerd Font is available
+icons:
+  when: auto
+  theme: fancy
+
+# columns: readable, minimal noise
+blocks:
+  - permission
+  - user
+  - group
+  - size
+  - date
+  - name
+
+# sizes/dates: human-friendly
+size: short         # B, KB, MB…
+date: date          # "date" -> normal absolute date format
+                    # "relavive" -> relavive format like '2 hours ago'
+
+# sorting: stable, predictable
+sorting:
+  column: name
+  reverse: false
+  dir-grouping: first  # list dirs first
+
+# layout: compact for wide terminals; switch to "tree" per CLI if needed
+layout: grid
+
+# links/symlinks: keep defaults; show intent clearly
+symlink-arrow: "→"
+indicators: true       # trailing indicators like "/@", etc.
+
+# hyperlinks in output: opt-in via CLI; avoid surprises in TTYs
+hyperlink: never
+
+# dereference symlinks: keep off by default; enable per CLI with -L when needed
+dereference: false

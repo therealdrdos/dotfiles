@@ -1,0 +1,76 @@
+#+TITLE: lsd (LSDeluxe) Configuration
+#+AUTHOR: DrDos
+#+DATE: 2025-11-08
+#+LANGUAGE: en
+#+OPTIONS: toc:nil
+#+PROPERTY: header-args :eval never-export
+
+This directory contains my lsd (LSDeluxe) configuration.
+
+* Highlights
+- Custom Solarized Light theme with modified user/group colors
+- Grid layout for compact display
+- Nerd Font icon support
+- Human-readable file sizes
+- Directories listed first
+- Sensible defaults for symlinks and indicators
+
+* Setup
+** Installation
+#+begin_src bash
+  # Symlink configuration files
+  ln -s /path/to/dotfiles/lsd/config.yaml ~/.config/lsd/config.yaml
+  ln -s /path/to/dotfiles/lsd/colors.yaml ~/.config/lsd/colors.yaml
+#+end_src
+
+** Recommended Shell alias
+Add to =~/.bashrc= or =~/.zshrc=:
+#+begin_src bash
+  alias ls='lsd'
+  alias ll='lsd -lA'
+  alias lt='lsd --tree'
+#+end_src
+
+* Color Customizations
+The =colors.yaml= file is based on [[https://github.com/bradleyhop/lsd-solarized-theme][lsd-solarized-theme]] with custom modifications:
+
+- *User color:* 136 (Solarized yellow)
+- *Group color:* 244 (custom gray, changed from 125)
+
+These modifications improve readability while maintaining the Solarized Light aesthetic.
+
+* Configuration Details
+** Display settings
+- *Layout:* Grid
+- *Size format:* Short (B, KB, MB, etc.)
+- *Date format:* Absolute dates
+- *Icon theme:* Fancy (requires Nerd Font)
+
+** Sorting behavior
+- *Column:* Name
+- *Direction:* Ascending
+- *Directory grouping:* Directories first
+
+** Special features
+- Symlink arrow: →
+- Indicators enabled (shows trailing /, @, etc.)
+- Hyperlinks disabled (avoids TTY surprises)
+- Dereference disabled (preserves symlink visibility)
+
+* Troubleshooting
+** Icons not displaying
+Ensure a Nerd Font is installed and configured in your terminal.
+lsd will automatically detect font capabilities.
+
+** Colors look wrong
+Verify your terminal supports 256 colors:
+#+begin_src bash
+  echo $TERM
+  # Should show something like "xterm-256color"
+#+end_src
+
+** Configuration not loading
+Check file locations:
+#+begin_src bash
+  ls -la ~/.config/lsd/
+#+end_src
