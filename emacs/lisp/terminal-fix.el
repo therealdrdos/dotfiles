@@ -77,7 +77,7 @@ Checks for vterm/term/ansi-term/EAT modes."
 Applies to terminal buffers."
   (when (and terminal-fix-cleanup-ui (terminal-fix--buffer-is-terminal-like))
     ;; No line numbers (they consume columns).
-    (when (boundp 'display-line-numbers) (display-line-numbers-mode -1))
+    (when (fboundp 'display-line-numbers-mode) (display-line-numbers-mode -1))
     ;; No extra window margins.
     (set-window-margins nil 0 0)
     ;; No fringes (left/right gutter).
@@ -125,12 +125,13 @@ This function is added as a buffer-local hook to `window-size-change-functions'.
 (defun terminal-fix--cleanup-all-buffers ()
   "Remove window-size-change hooks from all buffers where terminal-fix was enabled."
   (dolist (buf (buffer-list))
-    (with-current-buffer buf
-      (when terminal-fix--hook-installed
-        (remove-hook 'window-size-change-functions
-                     #'terminal-fix--window-size-handler
-                     t)
-        (setq terminal-fix--hook-installed nil)))))
+    (when (buffer-live-p buf)
+      (with-current-buffer buf
+        (when terminal-fix--hook-installed
+          (remove-hook 'window-size-change-functions
+                       #'terminal-fix--window-size-handler
+                       t)
+          (setq terminal-fix--hook-installed nil))))))
 
 (defun terminal-fix--add-hooks ()
   "Attach hooks to terminal and shell-like modes."
