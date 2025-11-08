@@ -28,9 +28,9 @@ blocks:
   - name
 
 # sizes/dates: human-friendly
-size: short         # B, KB, MB…
-date: date          # "date" -> normal absolute date format
-                    # "relavive" -> relavive format like '2 hours ago'
+size: short  # B, KB, MB…
+date: date  # "date" -> normal absolute date format
+# "relative" -> relative format like '2 hours ago'
 
 # sorting: stable, predictable
 sorting:
