@@ -56,6 +56,9 @@
 (defvar terminal-fix--saved-window-resize-pixelwise nil
   "Saved value of `window-resize-pixelwise' before enabling terminal-fix-mode.")
 
+(defvar-local terminal-fix--hook-installed nil
+  "Non-nil if window-size-change hook is installed in this buffer.")
+
 (defun terminal-fix--buffer-is-terminal-like ()
   "Return non-nil if current buffer is a terminal or shell-like buffer."
   (apply #'derived-mode-p (append terminal-fix-terminal-modes terminal-fix-shellish-modes)))
@@ -93,16 +96,31 @@
   (terminal-fix--visual-cleanup)
   (terminal-fix--sync-size))
 
+(defun terminal-fix--window-size-handler (_frame)
+  "Sync PTY size when window size changes.
+This function is added as a buffer-local hook to window-size-change-functions."
+  (when (and terminal-fix--hook-installed
+             (eq (current-buffer) (window-buffer (selected-window))))
+    (terminal-fix--sync-size)))
+
 (defun terminal-fix--enable-buffer ()
   "Enable terminal-fix behavior for the current terminal buffer."
   ;; Make changes buffer-local and keep PTY in sync on window size changes.
   (terminal-fix-apply-now)
   (add-hook 'window-size-change-functions
-            (lambda (_frame)
-              ;; Only act when THIS buffer is the one currently displayed.
-              (when (eq (current-buffer) (window-buffer (selected-window)))
-                (terminal-fix--sync-size)))
-            nil t))
+            #'terminal-fix--window-size-handler
+            nil t)
+  (setq terminal-fix--hook-installed t))
+
+(defun terminal-fix--cleanup-all-buffers ()
+  "Remove window-size-change hooks from all buffers where terminal-fix was enabled."
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (when terminal-fix--hook-installed
+        (remove-hook 'window-size-change-functions
+                     #'terminal-fix--window-size-handler
+                     t)
+        (setq terminal-fix--hook-installed nil)))))
 
 (defun terminal-fix--add-hooks ()
   "Attach hooks to terminal and shell-like modes."
@@ -141,7 +159,8 @@
               window-resize-pixelwise t)
         ;; Add our hooks.
         (terminal-fix--add-hooks))
-    ;; Disable: restore previous resize settings and remove hooks.
+    ;; Disable: cleanup buffer-local hooks, restore resize settings, remove mode hooks.
+    (terminal-fix--cleanup-all-buffers)
     (setq frame-resize-pixelwise terminal-fix--saved-frame-resize-pixelwise
           window-resize-pixelwise terminal-fix--saved-window-resize-pixelwise)
     (terminal-fix--remove-hooks)))
