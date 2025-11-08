@@ -130,6 +130,15 @@
           ("PROGRESS"   font-lock-constant-face bold)
           ("NOTE"       success bold))))
 
+(use-package dashboard
+  :ensure t
+  :config
+  (setq dashboard-startup-banner 'official
+        dashboard-items '((recents  . 10)
+                          (projects . 5)
+                          (bookmarks . 5)))
+  (dashboard-setup-startup-hook))
+
 
 ;;;; Org-Mode -------------------------------------------------------------
 
