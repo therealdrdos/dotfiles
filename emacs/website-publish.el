@@ -148,7 +148,12 @@ This file is required for HTML export.  Please ensure:
 
 ;; ANSI color post-processing for txt export
 (defun my/add-ansi-colors (filename)
-  "Post‑process FILENAME, adding basic ANSI escape codes."
+  "Post-process FILENAME, adding basic ANSI escape codes.
+Signals an error if FILENAME does not exist or is not writable."
+  (unless (file-exists-p filename)
+    (error "Cannot add ANSI colors: file does not exist: %s" filename))
+  (unless (file-writable-p filename)
+    (error "Cannot add ANSI colors: file is not writable: %s" filename))
   (with-temp-buffer
     (insert-file-contents filename)
     ;; bold (**text** in ox-ascii output)
@@ -163,7 +168,11 @@ This file is required for HTML export.  Please ensure:
     (goto-char (point-min))
     (while (re-search-forward "__\\([^_]+\\)__" nil t)
       (replace-match (concat "\e[4m" (match-string 1) "\e[0m") nil t))
-    (write-region (point-min) (point-max) filename)))
+    (condition-case err
+        (write-region (point-min) (point-max) filename)
+      (file-error
+       (error "Failed to write ANSI-colored output to %s: %s"
+              filename (error-message-string err))))))
 
 ;; Wrapper to include the ansi escape codes
 (defun my/org-ascii-publish-with-ansi (plist filename pub-dir)
