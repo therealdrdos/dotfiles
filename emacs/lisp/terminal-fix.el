@@ -96,11 +96,11 @@
   (terminal-fix--visual-cleanup)
   (terminal-fix--sync-size))
 
-(defun terminal-fix--window-size-handler (_frame)
+(defun terminal-fix--window-size-handler (frame)
   "Sync PTY size when window size changes.
 This function is added as a buffer-local hook to window-size-change-functions."
   (when (and terminal-fix--hook-installed
-             (eq (current-buffer) (window-buffer (selected-window))))
+             (get-buffer-window (current-buffer) frame))
     (terminal-fix--sync-size)))
 
 (defun terminal-fix--enable-buffer ()
