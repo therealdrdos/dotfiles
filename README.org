@@ -10,9 +10,14 @@ This is the place where I store my personal config files.
 * Directory layout
 #+begin_example
 dotfiles/
-├── emacs/           Emacs configuration
-├── tmux/            tmux configuration
-└── README.org       this file
+├── emacs/
+│   ├── init.el              Main Emacs configuration
+│   ├── lisp/                Local Emacs packages
+│   └── README.org           Emacs-specific documentation
+├── tmux/
+│   ├── .tmux.conf           Tmux configuration
+│   └── README.org           Tmux-specific documentation
+└── README.org               This file
 #+end_example
 
 * Rights to use
