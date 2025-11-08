@@ -239,6 +239,50 @@ PUB-DIR is the publishing directory."
    (format "RSS feed: [[file:%sblog.xml][blog.xml]]\n\n  " my/--posts-dir)
    (org-list-to-org list)))
 
+;;;; RSS Feed Generation
+
+(defun my/rss-sitemap-entry (entry _style project)
+  "Return RSS-compatible headline for ENTRY in PROJECT.
+ox-rss requires headlines (not lists) with links."
+  (let* ((base-dir (or (org-publish-property :base-directory project)
+                      default-directory))
+         (abs-entry (expand-file-name entry base-dir))
+         (filename (file-name-nondirectory entry))
+         (title (org-publish-find-title entry project))
+         (date (org-publish-find-date entry project))
+         (description (with-temp-buffer
+                       (insert-file-contents abs-entry)
+                       (goto-char (point-min))
+                       (when (re-search-forward
+                              "^#\\+DESCRIPTION:[ \\t]+\\(.*\\)$" nil t)
+                         (match-string 1)))))
+    ;; RSS needs headlines with properties, not lists
+    (format "* %s
+:PROPERTIES:
+:RSS_PERMALINK: %s
+:PUBDATE: %s
+:END:
+%s"
+            title
+            (file-name-sans-extension filename)
+            (format-time-string "<%Y-%m-%d>" date)
+            (or description ""))))
+
+(defun my/rss-sitemap-function (_title list)
+  "Generate RSS-compatible sitemap from LIST.
+Omits intro text and directly outputs headlines, not nested lists."
+  ;; Build output string by iterating over entries
+  (let ((entries (cdr list))
+        (output "#+TITLE: Latest Blog Posts\n\n"))
+    (dolist (entry entries output)
+      (let ((entry-str (cond
+                        ((stringp entry) entry)
+                        ((consp entry) (if (stringp (cdr entry))
+                                          (cdr entry)
+                                        (car entry)))
+                        (t (format "%s" entry)))))
+        (setq output (concat output entry-str "\n\n"))))))
+
 ;;;; Publishing Project Configuration
 
 (defun my/setup-publish-alist ()
@@ -274,16 +318,21 @@ This allows publishing from any directory containing template.html."
 
           ;; RSS feed for posts
           ("rss"
-           :base-directory ,(my/site-path "src/blog")
+           :base-directory ,(my/site-path "src/blog/posts")
            :publishing-directory ,(my/site-path "site/blog/posts")
            :base-extension "org"
-           :include ("blog.org")
+           :recursive t
            :publishing-function org-rss-publish-to-rss
-           :html-link-home ,(concat my/site-url "/blog/" my/--posts-dir)
+           :html-link-home ,(concat my/site-url "/blog/posts/")
            :html-link-use-abs-url t
            :rss-extension "xml"
            :rss-image-url ,my/rss-avatar-url
-           :rss-description "Latest blog posts")
+           :auto-sitemap t
+           :sitemap-filename "blog-rss.org"
+           :sitemap-title "Latest Blog Posts"
+           :sitemap-sort-files anti-chronologically
+           :sitemap-format-entry my/rss-sitemap-entry
+           :sitemap-function my/rss-sitemap-function)
 
           ;; Static assets (CSS, images …)
           ("static"
