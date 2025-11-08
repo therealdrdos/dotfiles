@@ -277,6 +277,13 @@
   (setq yaml-indent-offset 2)
   )
 
+(use-package dockerfile-mode
+  :mode ("\\`Containerfile\\'" "\\`Dockerfile\\(?:\\..*\\)?\\'")
+  :interpreter "dockerfile"
+  :init
+  ;; highlight build stages
+  (setq dockerfile-use-buildkit t))
+
 ;; Rust
 (use-package rust-mode
   :ensure t                 ;; lädt es beim ersten Bedarf von MELPA
