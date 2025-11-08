@@ -1,0 +1,104 @@
+### DrDos's Alacritty config
+###
+### Setup:
+### $ ln -s /path/to/dotfiles/alacritty/alacritty.toml ~/.config/alacritty/alacritty.toml
+### $ ln -s /path/to/dotfiles/alacritty/themes ~/.config/alacritty/themes
+### $ cp /path/to/dotfiles/alacritty/local.toml.template ~/.config/alacritty/local.toml
+###
+### Themes: Includes solarized_light (default), solarized_dark, solarized_osaka
+### To switch themes, edit line 11 to reference the desired theme file
+
+
+# general: theme + local overrides
+[general]
+import = [
+  "~/.config/alacritty/themes/solarized_light.toml", # Theming
+  "~/.config/alacritty/local.toml"  # Local overrides for machine specific details
+]
+live_config_reload = true
+
+# terminal: deterministic login shell
+[terminal]
+shell = { program = "/bin/bash", args = ["-l"] }
+osc52 = "CopyPaste"  # Allow TUI Apps to write to system clipboard
+
+# env: widely compatible term for remote hosts
+[env]
+TERM = "xterm-256color"
+
+# window: KDE-friendly defaults
+[window]
+decorations = "Full"
+opacity = 1.0
+dynamic_title = true
+dynamic_padding = true
+title = "Alacritty"
+class = { general = "Alacritty", instance = "alacritty" }
+
+[window.padding]
+x = 8
+y = 8
+
+# mouse: stay out of the way while typing
+[mouse]
+hide_when_typing = true
+
+[font]
+size = 10.0
+builtin_box_drawing = true
+
+[font.normal]
+family = "JetBrains Mono"
+
+# cursor: slim and steady
+[cursor]
+style = { shape = "Beam", blinking = "Off" }
+vi_mode_style = { shape = "Beam", blinking = "Off" }
+thickness = 0.15
+
+[scrolling]
+history = 20000
+multiplier = 3
+
+# selection: primary + clipboard; stricter word boundaries
+[selection]
+save_to_clipboard = true
+semantic_escape_chars = ",│`|:\"' ()[]{}<>\t‘’“”*=&?@#$%^;!/~+-"
+
+# bell: visual only, short and unobtrusive
+[bell]
+animation = "Linear"
+duration = 100
+
+## Keybindings
+[[keyboard.bindings]]
+key = "C"
+mods = "Control|Shift"
+action = "Copy"
+
+[[keyboard.bindings]]
+key = "V"
+mods = "Control|Shift"
+action = "Paste"
+
+[[keyboard.bindings]]
+key = "N"
+mods = "Control|Shift"
+action = "CreateNewWindow"
+
+## External opening behaviour
+[hints]
+alphabet = "asdfghjklqwertyuiopzxcvbnm"
+
+[[hints.enabled]]
+regex = "(~|/)[^\\s:]+"
+command = { program = "bash", args = ["-lc", "emacs -nw -- {0}"] }
+post_processing = true
+mouse = { enabled = false }
+binding = { key = "E", mods = "Control|Shift" }
+
+[[hints.enabled]]
+regex = "(mailto:|https?://)[^\\s<>]+"
+command = { program = "xdg-open", args = ["{0}"] }
+post_processing = true
+mouse = { enabled = false }

@@ -1,0 +1,38 @@
+# local: machine-specific overrides; loaded last
+
+# --- env overrides -----------------------------------------------------------
+# [env]
+# WINIT_UNIX_BACKEND = "x11"      # force X11 if Wayland misbehaves
+# EDITOR = "emacs"
+# PATH = "/custom/bin:${PATH}"
+
+# --- window tweaks -----------------------------------------------------------
+# [window]
+# opacity = 0.98
+# decorations = "None"            # or "Transparent", "Buttonless" (platform-dependent)
+
+# [window.padding]
+# x = 10
+# y = 10
+
+# --- font overrides ----------------------------------------------------------
+# [font]
+# size = 14.0
+
+# [font.normal]
+# family = "Iosevka"              # or whatever local font is installed
+
+# --- theme switch (dark mode) ------------------------------------------------
+# [general]
+# import = ["~/.config/alacritty/themes/themes/solarized_dark.toml"]
+
+# --- keybinding tweaks (last-one-wins) ---------------------------------------
+# [[keyboard.bindings]]
+# key = "N"
+# mods = "Control|Shift"
+# action = "CreateNewWindow"      # rebind if needed
+
+# --- hints override -----------------------------------------------------------
+# [[hints.enabled]]
+# regex = "(~|/)[^\\s:]+"
+# command = { program = "bash", args = ["-lc", "emacsclient -nw -- {0}"] }  # example

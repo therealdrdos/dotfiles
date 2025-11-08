@@ -1,0 +1,92 @@
+#+TITLE: Alacritty Configuration
+#+AUTHOR: DrDos
+#+DATE: 2025-11-08
+#+LANGUAGE: en
+#+OPTIONS: toc:nil
+#+PROPERTY: header-args :eval never-export
+
+This directory contains my Alacritty terminal emulator configuration.
+
+* Highlights
+- Solarized theme support (light, dark, and osaka variants included)
+- Import-based configuration system (main config + local overrides)
+- Emacs integration via hints (=Ctrl+Shift+E= opens files in emacs)
+- OSC52 clipboard support for TUI applications
+- Optimized for remote work (=xterm-256color= for compatibility)
+- Sensible defaults: beam cursor, visual bell, scroll history
+
+* Setup
+** Required system packages
+- *JetBrains Mono* font (hardcoded in config)
+  The font family is referenced in =alacritty.toml= and must be available on the system.
+
+** Installation
+#+begin_src bash
+  # Symlink main configuration
+  ln -s /path/to/dotfiles/alacritty/alacritty.toml ~/.config/alacritty/alacritty.toml
+
+  # Symlink themes directory
+  ln -s /path/to/dotfiles/alacritty/themes ~/.config/alacritty/themes
+
+  # Create local overrides from template
+  cp /path/to/dotfiles/alacritty/local.toml.template ~/.config/alacritty/local.toml
+#+end_src
+
+The =local.toml= file is for machine-specific settings.
+
+** Theme switching
+Three Solarized themes are included:
+- =solarized_light.toml= (default)
+- =solarized_dark.toml=
+- =solarized_osaka.toml=
+
+To switch themes, edit line 15 in =alacritty.toml=:
+#+begin_src toml
+  "~/.config/alacritty/themes/solarized_dark.toml", # Change this line
+#+end_src
+
+** Local overrides
+Use =~/.config/alacritty/local.toml= for machine-specific settings:
+#+begin_src toml
+  # Example: Override font size for high-DPI display
+  [font]
+  size = 12.0
+
+  # Example: Use different shell
+  [terminal]
+  shell = { program = "/usr/bin/zsh", args = ["-l"] }
+#+end_src
+
+* Key Features
+** Emacs integration
+Press =Ctrl+Shift+E= while hovering over a file path to open it in =emacs -nw=.
+
+** Clipboard support
+- =Ctrl+Shift+C= / =Ctrl+Shift+V= for copy/paste
+- OSC52 enabled for TUI applications to write to system clipboard
+- Selection automatically saved to clipboard
+
+** Window management
+- =Ctrl+Shift+N= creates a new Alacritty window
+- Live config reload enabled (changes apply without restart)
+
+* Troubleshooting
+** Font not found
+Install JetBrains Mono or change the font family in =alacritty.toml= line 47:
+#+begin_src toml
+  [font.normal]
+  family = "YourFontName"
+#+end_src
+
+** Theme not loading
+Ensure the themes directory is properly symlinked:
+#+begin_src bash
+  ls -la ~/.config/alacritty/themes
+#+end_src
+
+** Config changes not applying
+Alacritty reloads config automatically, but you can force restart:
+#+begin_src bash
+  killall alacritty
+  alacritty &
+#+end_src
