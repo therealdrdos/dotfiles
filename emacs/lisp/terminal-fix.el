@@ -75,7 +75,7 @@
     ;; No extra window margins.
     (set-window-margins nil 0 0)
     ;; No fringes (left/right gutter).
-    (set-window-fringes (selected-window) 0 0)
+    (set-window-fringes nil 0 0)
     ;; Do not soft-wrap terminal lines.
     (setq-local truncate-lines t)))
 
