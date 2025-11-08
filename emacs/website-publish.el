@@ -54,6 +54,24 @@ Call this after changing directories to force a fresh search."
 Website root is determined dynamically by searching for template.html."
   (expand-file-name sub (my/site-root)))
 
+;;; Configuration
+
+(defcustom my/site-url "https://www.dr-dos.org"
+  "Base URL of the website (without trailing slash)."
+  :type 'string
+  :group 'org-export-publish)
+
+(defcustom my/rss-avatar-url "https://www.dr-dos.org/static/avatar.png"
+  "URL to avatar image for RSS feed."
+  :type 'string
+  :group 'org-export-publish)
+
+(defconst my/--blog-path "/blog/blog.html"
+  "Path to blog index page (relative to site root).")
+
+(defconst my/--posts-dir "posts/"
+  "Directory name for blog posts (with trailing slash).")
+
 ;; Global export parameters
 (setq org-html-doctype "html5")
 (setq org-html-html5-fancy t)
@@ -81,7 +99,8 @@ BACKEND – What backend is the caller
              (year (format-time-string "%Y"))
              (tags (when-let ((filetags (plist-get info :filetags)))
                      (mapconcat (lambda (tag)
-                                  (format "<a class=\"tag\" href=\"/blog/blog.html#%s\">#%s</a>" tag tag))
+                                  (format "<a class=\"tag\" href=\"%s#%s\">#%s</a>"
+                                          my/--blog-path tag tag))
                                 filetags " "))))
         ;; Verify template file exists before attempting to read it
         (unless (file-exists-p template-file)
@@ -114,7 +133,7 @@ This file is required for HTML export.  Please ensure:
                        default-directory))
          (abs-entry  (expand-file-name entry base-dir))
          (filename   (file-name-nondirectory entry))
-         (link       (concat "posts/" filename))
+         (link       (concat my/--posts-dir filename))
          (title      (org-publish-find-title entry project))
          (date       (org-publish-find-date  entry project))
          (description (with-temp-buffer
@@ -162,8 +181,7 @@ PUB-DIR is the publishing directory."
   (concat
    "#+TITLE: " title "\n\n "
    "Welcome to my blog – here you'll find all posts. "
-   "RSS feed: [[file:posts/blog.xml][blog.xml]]\n\n  "
-   
+   (format "RSS feed: [[file:%sblog.xml][blog.xml]]\n\n  " my/--posts-dir)
    (org-list-to-org list)))
 
 ;; Setup function to dynamically build org-publish-project-alist
@@ -205,10 +223,10 @@ This allows publishing from any directory containing template.html."
            :base-extension "org"
            :include ("blog.org")
            :publishing-function org-rss-publish-to-rss
-           :html-link-home "https://www.dr-dos.org/blog/posts"
+           :html-link-home ,(concat my/site-url "/blog/" my/--posts-dir)
            :html-link-use-abs-url t
            :rss-extension "xml"
-           :rss-image-url "https://www.dr-dos.org/static/avatar.png"
+           :rss-image-url ,my/rss-avatar-url
            :rss-description "Latest blog posts")
 
           ;; Static assets (CSS, images …)
