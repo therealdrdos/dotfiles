@@ -63,20 +63,20 @@ BACKEND – What backend is the caller
              (year (format-time-string "%Y"))
              (tags (when-let ((filetags (plist-get info :filetags)))
                      (mapconcat (lambda (tag)
-				  (format "<a class=\"tag\" href=\"/blog/blog.html#%s\">#%s</a>" tag tag))
-				filetags " "))))
+                                  (format "<a class=\"tag\" href=\"/blog/blog.html#%s\">#%s</a>" tag tag))
+                                filetags " "))))
         ;; Verify template file exists before attempting to read it
         (unless (file-exists-p template-file)
-          (error "template.html not found at: %s
+          (error "Template.html not found at: %s
 
-This file is required for HTML export. Please ensure:
+This file is required for HTML export.  Please ensure:
   1. You are in the correct website directory
   2. template.html exists in the website root
   3. The file has not been moved or deleted" template-file))
-	(with-temp-buffer
-	  (insert-file-contents template-file)
-	  (goto-char (point-min))
-	  (while (re-search-forward "{{\\(title\\|description\\|year\\|tags\\|contents\\)}}" nil t)
+        (with-temp-buffer
+          (insert-file-contents template-file)
+          (goto-char (point-min))
+          (while (re-search-forward "{{\\(title\\|description\\|year\\|tags\\|contents\\)}}" nil t)
             (replace-match
              (pcase (match-string 1)
                ("title" title)
@@ -84,8 +84,8 @@ This file is required for HTML export. Please ensure:
                ("year" year)
                ("tags" (or tags ""))
                ("contents" output))
-	     nil t))
-	  (buffer-string)))
+             nil t))
+          (buffer-string)))
   output))
 (setq org-export-filter-final-output-functions '(my/html-template))
 
@@ -96,7 +96,7 @@ This file is required for HTML export. Please ensure:
                        default-directory))
          (abs-entry  (expand-file-name entry base-dir))
          (filename   (file-name-nondirectory entry))
-	 (link       (concat "posts/" filename))
+         (link       (concat "posts/" filename))
          (title      (org-publish-find-title entry project))
          (date       (org-publish-find-date  entry project))
          (description (with-temp-buffer
@@ -130,7 +130,10 @@ This file is required for HTML export. Please ensure:
 
 ;; Wrapper to include the ansi escape codes
 (defun my/org-ascii-publish-with-ansi (plist filename pub-dir)
-  "Export to ASCII and inject ANSI codes."
+  "Export to ASCII and inject ANSI codes.
+PLIST contains project properties.
+FILENAME is the Org file to export.
+PUB-DIR is the publishing directory."
   (let ((outfile (org-ascii-publish-to-ascii plist filename pub-dir)))
     (my/add-ansi-colors outfile)
     outfile))
