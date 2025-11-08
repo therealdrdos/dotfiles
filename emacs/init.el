@@ -157,6 +157,39 @@
 (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1)))
 
 
+;;;; Dired tweaks --------------------------------------------------------
+
+;; Minibuffer completions
+(use-package vertico
+  :custom
+  (vertico-resize t) ;; Grow and shrink the Vertico minibuffer
+  (vertico-cycle t) ;; Enable cycling for `vertico-next/previous'
+  :init
+  (vertico-mode))
+
+;; Enable rich annotations using the Marginalia package
+(use-package marginalia
+  ;; Bind `marginalia-cycle' locally in the minibuffer.  To make the binding
+  ;; available in the *Completions* buffer, add it to the
+  ;; `completion-list-mode-map'.
+  :bind (:map minibuffer-local-map
+         ("M-A" . marginalia-cycle))
+  :init
+  (marginalia-mode))
+
+;; Enable Icons for Dired
+(use-package nerd-icons-dired
+  :hook
+  (dired-mode . nerd-icons-dired-mode))
+
+;; Persist history over Emacs restarts. Vertico sorts by history position.
+(use-package savehist
+  :init
+  (savehist-mode))
+
+(setq dired-dwin-target t)  ; Enables multi-panel dired awareness
+
+
 ;;;; Additional packages -------------------------------------------------
 
 ;; With-editor for allowing the emacsclient to be the editor
