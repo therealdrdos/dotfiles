@@ -19,6 +19,8 @@ dotfiles/
 │   ├── init.el              Main Emacs configuration
 │   ├── lisp/                Local Emacs packages
 │   └── README.org           Emacs-specific documentation
+├── git/
+│   └── .gitconfig           Global Git configuration
 ├── lsd/
 │   ├── config.yaml          lsDeluxe configuration
 │   ├── colors.yaml          Custom Solarized theme
