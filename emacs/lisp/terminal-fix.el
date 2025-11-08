@@ -7,7 +7,7 @@
 
 ;;; Commentary:
 ;; This module fixes common width/height mismatches between Emacs terminal
-;; buffers (vterm/EAT/ansi-term) and the underlying PTY. Typical symptoms:
+;; buffers (vterm/EAT/ansi-term) and the underlying PTY.  Typical symptoms:
 ;; - $COLUMNS is smaller than the actual window-body width
 ;; - ASCII boxes/lines wrap one or two characters too early/late
 ;; - Tools (Ansible, Cloud tooling) render “too narrow” or overflow by 1–2 chars
@@ -29,12 +29,14 @@
   :prefix "terminal-fix-")
 
 (defcustom terminal-fix-cleanup-ui t
-  "If non-nil, disable line numbers, margins, and fringes in terminal buffers and avoid soft-wrapping."
+  "If non-nil, disable line numbers, margins, and fringes in terminal buffers.
+Also avoid soft-wrapping."
   :type 'boolean
   :group 'terminal-fix)
 
 (defcustom terminal-fix-sync-pty t
-  "If non-nil, synchronize PTY size ($COLUMNS/$LINES) with the window-body size."
+  "If non-nil, synchronize PTY size with the window-body size.
+This sets $COLUMNS/$LINES correctly."
   :type 'boolean
   :group 'terminal-fix)
 
@@ -46,7 +48,8 @@
 
 (defcustom terminal-fix-shellish-modes
   '(shell-mode eshell-mode comint-mode)
-  "Shell-like modes where UI cleanup (no line numbers, margins, fringes) is also useful."
+  "Shell-like modes where UI cleanup is also useful.
+Removes line numbers, margins, and fringes."
   :type '(repeat symbol)
   :group 'terminal-fix)
 
@@ -64,11 +67,13 @@
   (apply #'derived-mode-p (append terminal-fix-terminal-modes terminal-fix-shellish-modes)))
 
 (defun terminal-fix--buffer-is-pty-terminal ()
-  "Return non-nil if current buffer is a true PTY terminal (vterm/term/ansi-term/EAT)."
+  "Return non-nil if current buffer is a true PTY terminal.
+Checks for vterm/term/ansi-term/EAT modes."
   (apply #'derived-mode-p terminal-fix-terminal-modes))
 
 (defun terminal-fix--visual-cleanup ()
-  "Disable UI chrome that steals columns and avoid soft-wrapping in terminal buffers."
+  "Disable UI chrome that steals columns and avoid soft-wrapping.
+Applies to terminal buffers."
   (when (and terminal-fix-cleanup-ui (terminal-fix--buffer-is-terminal-like))
     ;; No line numbers (they consume columns).
     (when (boundp 'display-line-numbers) (display-line-numbers-mode -1))
@@ -97,8 +102,8 @@
   (terminal-fix--sync-size))
 
 (defun terminal-fix--window-size-handler (frame)
-  "Sync PTY size when window size changes.
-This function is added as a buffer-local hook to window-size-change-functions."
+  "Sync PTY size when window size change.
+This function is added as a buffer-local hook to `window-size-change-functions'."
   (when (and terminal-fix--hook-installed
              (get-buffer-window (current-buffer) frame))
     (terminal-fix--sync-size)))
@@ -147,7 +152,8 @@ This function is added as a buffer-local hook to window-size-change-functions."
 
 ;;;###autoload
 (define-minor-mode terminal-fix-mode
-  "Global minor mode to keep PTY size in sync and remove UI chrome in terminal buffers."
+  "Global minor mode to keep PTY size in sync and remove UI chrome.
+Applies to terminal buffers."
   :global t
   :group 'terminal-fix
   (if terminal-fix-mode
