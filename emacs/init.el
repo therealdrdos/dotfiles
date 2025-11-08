@@ -64,7 +64,6 @@
 (global-set-key [escape] 'keyboard-escape-quit) ; Escape Minibuffer with one not three escape presses
 ;; Minibuffer history
 (setq history-length 25)
-(savehist-mode 1)
 (setq delete-by-moving-to-trash t)
 
 ;;; Keybinding to open init.el quickly
@@ -346,6 +345,49 @@
   :ensure t
   :after (rust-mode flycheck)
   :hook (rust-mode . flycheck-rust-setup))
+
+
+;;;; Claude-Code --------------------------------------------------------
+;; install required inheritenv dependency:
+(use-package inheritenv
+  :vc (:url "https://github.com/purcell/inheritenv" :rev :newest))
+
+;; eat terminal backend:
+(use-package eat :ensure t)
+(setq eat-kill-buffer-on-exit t)
+
+(setq eat-term-name "xterm-direct")
+
+;; monet package for mcp
+(use-package monet
+  :vc (:url "https://github.com/stevemolitor/monet" :rev :newest))
+
+;; install claude-code.el
+(use-package claude-code :ensure t
+  :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
+  :config
+  ;; IDE integration with Monet
+  (add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
+  (monet-mode 1)
+
+  (claude-code-mode)
+  :bind-keymap ("C-c c" . claude-code-command-map)
+
+  ;; Define a repeat map so that "M" will cycle thru Claude auto-accept/plan/confirm modes after invoking claude-code-cycle-mode / C-c M.
+  :bind
+  (:repeat-map my-claude-code-map ("M" . claude-code-cycle-mode)))
+
+;; Ediff
+;; Restore previous window layout after ediff exits
+(use-package winner
+  :config
+  (winner-mode 1))
+(add-hook 'ediff-after-quit-hook-internal #'winner-undo)
+
+;; Configure Ediff
+(setq monet-diff-tool #'monet-ediff-tool)
+(setq monet-diff-cleanup-tool #'monet-ediff-cleanup-tool)
+(setq monet-ediff-quit-key "C-g")            ; Default: "q"
 
 
 ;;;; Website export functionality ---------------------------------------
