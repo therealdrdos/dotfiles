@@ -1,16 +1,53 @@
 ;;; website-publish.el --- Org‑publish setup for my static site -*- lexical-binding: t; -*-
 
 ;;; Commentary:
-;; This is the code needed to generate my website https://github.com/therealdrdos/simonswebsite comfortable from org files, including rss-feed, dynamic blog list generation and more.
-;; Export the site with:
-;;   M-x org-publish RET website RET
+;; This package provides org-publish configuration for generating a static
+;; website with blog functionality, RSS feed, and plain-text export.
+;; Source: https://github.com/therealdrdos/simonswebsite
+;;
+;; Features:
+;; - Dynamic website root detection (works from any subdirectory)
+;; - Custom HTML templating with placeholder substitution
+;; - Automatic blog index generation with descriptions and dates
+;; - RSS feed with configurable URLs
+;; - Plain-text export with ANSI color codes for terminal viewing
+;; - Performance-optimized with memoized directory lookups
+;;
+;; Directory Structure:
+;;   website-root/
+;;   ├── template.html          (required: HTML template with {{placeholders}})
+;;   ├── src/                   (Org source files)
+;;   │   ├── index.org
+;;   │   └── blog/
+;;   │       └── posts/*.org    (Blog posts with #+TITLE, #+DESCRIPTION, #+FILETAGS)
+;;   ├── static/                (CSS, images, etc.)
+;;   └── site/                  (Generated HTML output)
+;;
+;; Workflow:
+;; 1. Navigate to your website directory (or any subdirectory within it)
+;; 2. Run: M-x org-publish RET website RET
+;; 3. The package automatically finds template.html to determine the root
+;; 4. All components (pages, posts, RSS, static, txt) are published
+;;
+;; Configuration:
+;; Customize these variables to adapt to your setup:
+;; - `my/site-url': Base URL of your website
+;; - `my/rss-avatar-url': Avatar image URL for RSS feed
+;;
+;; Advanced:
+;; - `my/site-root-reset': Clear cached root (useful after changing directories)
+;; - `my/website-publish-mode-disable': Disable automatic root detection
 ;;
 
 
 ;;; Code:
+
+;;;; Dependencies
 (require 'ox-publish)
 (require 'ox-rss)
 (require 'subr-x) ;; for when-let
+
+;;;; Site Root Detection
 
 (defvar my/--site-root-directory nil
   "Cached website project root directory.
@@ -72,7 +109,8 @@ Website root is determined dynamically by searching for template.html."
 (defconst my/--posts-dir "posts/"
   "Directory name for blog posts (with trailing slash).")
 
-;; Global export parameters
+;;;; Global Export Parameters
+
 (setq org-html-doctype "html5")
 (setq org-html-html5-fancy t)
 (setq org-html-scripts "")           ; strip all JS snippets that ox-html adds
@@ -80,7 +118,8 @@ Website root is determined dynamically by searching for template.html."
 
 (setq org-html-validation-link nil) ; deactivate org validation link
 
-;; Define the html template (I use an external file)
+;;;; HTML Template System
+
 (defun my/html-template (output backend info)
   "Replace placeholders in template.html and return full HTML page.
 OUTPUT  – HTML fragment produced by Org export.
@@ -126,7 +165,8 @@ This file is required for HTML export.  Please ensure:
   output))
 (setq org-export-filter-final-output-functions '(my/html-template))
 
-;; Sitemap entry formatting for blog index
+;;;; Blog Index Formatting
+
 (defun my/sitemap-entry (entry _style project)
   "Return formatted line for sitemap ENTRY in PROJECT."
   (let* ((base-dir   (or (org-publish-property :base-directory project)
@@ -146,7 +186,8 @@ This file is required for HTML export.  Please ensure:
             (format-time-string "%Y-%m-%d" date)
             link title (or description ""))))
 
-;; ANSI color post-processing for txt export
+;;;; Plain-Text Export with ANSI Colors
+
 (defun my/add-ansi-colors (filename)
   "Post-process FILENAME, adding basic ANSI escape codes.
 Signals an error if FILENAME does not exist or is not writable."
@@ -193,7 +234,8 @@ PUB-DIR is the publishing directory."
    (format "RSS feed: [[file:%sblog.xml][blog.xml]]\n\n  " my/--posts-dir)
    (org-list-to-org list)))
 
-;; Setup function to dynamically build org-publish-project-alist
+;;;; Publishing Project Configuration
+
 (defun my/setup-publish-alist ()
   "Set up `org-publish-project-alist' with current website root.
 This allows publishing from any directory containing template.html."
@@ -259,7 +301,8 @@ This allows publishing from any directory containing template.html."
           ;; Build everything together
           ("website" :components ("pages" "posts" "rss" "static" "txt")))))
 
-;; Advice to refresh project alist before publishing
+;;;; Advice Management
+
 (defun my/refresh-publish-alist-advice (&rest _args)
   "Refresh `org-publish-project-alist' before publishing.
 This ensures the correct website root is used based on current directory."
