@@ -390,6 +390,15 @@
 (setq monet-ediff-quit-key "C-g")            ; Default: "q"
 
 
+;;;; Terminal size fix for eat ------------------------------------------
+(add-to-list 'load-path (expand-file-name "~/.config/emacs/lisp/"))
+(use-package terminal-fix
+  :ensure nil
+  :defer nil
+  :config
+  (terminal-fix-mode 1))
+
+
 ;;;; Website export functionality ---------------------------------------
 (load (expand-file-name "website-publish.el" user-emacs-directory))
 
