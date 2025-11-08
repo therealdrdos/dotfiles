@@ -239,11 +239,6 @@
 
 
 ;;;; Additional language support -----------------------------------------
-;; Install treesitter grammar
-(when (and (fboundp 'treesit-install-language-grammar)
-           (not (treesit-language-available-p 'html)))
-  (treesit-install-language-grammar 'html))
-
 ;; Global Treesitter Mode
 (when (fboundp 'global-ts-mode)
   (global-ts-mode))
