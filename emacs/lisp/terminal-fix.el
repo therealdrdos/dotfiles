@@ -7,7 +7,7 @@
 
 ;;; Commentary:
 ;; This module fixes common width/height mismatches between Emacs terminal
-;; buffers (vterm/EAT/ansi-term) and the underlying PTY.  Typical symptoms:
+;; buffers (vterm/EAT/term-mode) and the underlying PTY.  Typical symptoms:
 ;; - $COLUMNS is smaller than the actual window-body width
 ;; - ASCII boxes/lines wrap one or two characters too early/late
 ;; - Tools (Ansible, Cloud tooling) render “too narrow” or overflow by 1–2 chars
@@ -69,7 +69,7 @@ Removes line numbers, margins, and fringes."
 
 (defun terminal-fix--buffer-is-pty-terminal ()
   "Return non-nil if current buffer is a true PTY terminal.
-Checks for vterm/term/ansi-term/EAT modes."
+Checks for vterm-mode, term-mode, and eat-mode."
   (apply #'derived-mode-p terminal-fix-terminal-modes))
 
 (defun terminal-fix--visual-cleanup ()
