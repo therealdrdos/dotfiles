@@ -1,0 +1,69 @@
+#+TITLE: Portage Configuration
+#+AUTHOR: DrDos
+#+DATE: 2025-11-08
+#+LANGUAGE: en
+#+OPTIONS: toc:nil
+#+PROPERTY: header-args :eval never-export
+
+This directory contains Gentoo Portage package manager configuration files.
+
+* Highlights
+- Optimized compiler flags and build parallelization
+- Secureboot support with kernel module signing
+- KDE Plasma desktop profile with dependency fixes
+- Testing packages enabled for selected categories
+- Binary package support via Gentoo binhost
+
+* Setup
+** Installation
+#+begin_src bash
+  # Symlink main configuration
+  ln -s /path/to/dotfiles/portage/make.conf /etc/portage/make.conf
+  ln -s /path/to/dotfiles/portage/bashrc /etc/portage/bashrc
+  ln -s /path/to/dotfiles/portage/package.license /etc/portage/package.license
+
+  # Symlink directories
+  ln -s /path/to/dotfiles/portage/package.use /etc/portage/package.use
+  ln -s /path/to/dotfiles/portage/package.accept_keywords /etc/portage/package.accept_keywords
+  ln -s /path/to/dotfiles/portage/repos.conf /etc/portage/repos.conf
+  ln -s /path/to/dotfiles/portage/binrepos.conf /etc/portage/binrepos.conf
+#+end_src
+
+** Hardware-specific configuration
+These files are NOT included in the repository and must be created manually:
+
+*** CPU flags
+#+begin_src bash
+  emerge -1 app-portage/cpuid2cpuflags
+  cpuid2cpuflags > /etc/portage/package.use/00cpu-flags
+#+end_src
+
+*** GPU drivers
+Create =/etc/portage/package.use/mesa= and =/etc/portage/package.use/xorg-drivers= based on your hardware.
+
+Example for AMD:
+#+begin_src
+  # mesa
+  media-libs/mesa video_cards_radeonsi
+
+  # xorg-drivers
+  x11-base/xorg-drivers video_cards_amdgpu
+#+end_src
+
+* What's included
+- =make.conf= - Main Portage configuration
+- =bashrc= - Etckeeper integration
+- =package.license= - License acceptances
+- =package.use/= - USE flags for specific packages
+- =package.accept_keywords/= - Testing packages configuration
+- =repos.conf/= - Repository configuration
+- =binrepos.conf/= - Binary package repository
+
+* Notes
+Current profile: =default/linux/amd64/23.0/desktop/plasma=
+
+The configuration assumes:
+- Secureboot with kernel module signing
+- KDE Plasma desktop environment
+- AMD GPU (adjust VIDEO_CARDS)
+- 12-core CPU (adjust MAKEOPTS)

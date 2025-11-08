@@ -1,0 +1,4 @@
+app-editors/emacs games json -X gui gtk jit tree-sitter
+app-emacs/emacs-common games
+net-libs/gnutls tools
+sys-devel/gcc jit

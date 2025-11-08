@@ -1,0 +1,17 @@
+# required by x11-libs/pango-1.57.0::gentoo
+# required by dev-qt/qtbase-6.9.3::gentoo[gtk,gui,widgets]
+# required by kde-frameworks/kcoreaddons-6.16.0::gentoo
+# required by kde-frameworks/kcrash-6.16.0::gentoo
+# required by kde-frameworks/kwallet-runtime-6.16.0::gentoo
+# required by kde-frameworks/kwallet-6.16.0::gentoo[-minimal]
+# required by kde-frameworks/kio-6.16.0-r1::gentoo[kwallet]
+# required by kde-plasma/libplasma-6.4.5::gentoo
+# required by kde-plasma/polkit-kde-agent-6.4.5::gentoo
+# required by kde-frameworks/kauth-6.16.0::gentoo
+>=media-libs/freetype-2.13.3 harfbuzz
+
+# Fix for dependency circle
+x11-libs/cairo X aqua
+dev-python/pycairo X
+kde-plasma/plasma-meta grub flatpak
+dev-qt/qtpositioning geoclue

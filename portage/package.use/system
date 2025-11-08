@@ -1,0 +1,2 @@
+app-admin/sysklogd logrotate
+app-admin/doas persist
