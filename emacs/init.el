@@ -400,7 +400,10 @@
 
 
 ;;;; Website export functionality ---------------------------------------
-(load (expand-file-name "website-publish.el" user-emacs-directory))
+
+(use-package ox-rss
+  :ensure t)
+(require 'website-publish)
 
 
 ;;;; Custom-Set-Variables added by packages -----------------------------
