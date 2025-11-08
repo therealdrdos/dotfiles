@@ -168,9 +168,19 @@ This file is required for HTML export.  Please ensure:
              nil t))
           (buffer-string)))
   output))
-(setq org-export-filter-final-output-functions '(my/html-template))
+(add-to-list 'org-export-filter-final-output-functions #'my/html-template)
 
 ;;;; Blog Index Formatting
+
+(defun my/extract-description (file-path)
+  "Extract #+DESCRIPTION from FILE-PATH.
+Returns the description string or nil if not found."
+  (when (file-exists-p file-path)
+    (with-temp-buffer
+      (insert-file-contents file-path)
+      (goto-char (point-min))
+      (when (re-search-forward "^#\\+DESCRIPTION:[ \\t]+\\(.*\\)$" nil t)
+        (match-string 1)))))
 
 (defun my/sitemap-entry (entry _style project)
   "Return formatted line for sitemap ENTRY in PROJECT."
@@ -181,12 +191,7 @@ This file is required for HTML export.  Please ensure:
          (link       (concat my/--posts-dir filename))
          (title      (org-publish-find-title entry project))
          (date       (org-publish-find-date  entry project))
-         (description (with-temp-buffer
-                        (insert-file-contents abs-entry)
-                        (goto-char (point-min))
-                        (when (re-search-forward
-                               "^#\\+DESCRIPTION:[ \\t]+\\(.*\\)$" nil t)
-                          (match-string 1)))))
+         (description (my/extract-description abs-entry)))
     (format "%s [[file:%s][%s]] – %s"
             (format-time-string "%Y-%m-%d" date)
             link title (or description ""))))
@@ -250,12 +255,7 @@ ox-rss requires headlines (not lists) with links."
          (filename (file-name-nondirectory entry))
          (title (org-publish-find-title entry project))
          (date (org-publish-find-date entry project))
-         (description (with-temp-buffer
-                       (insert-file-contents abs-entry)
-                       (goto-char (point-min))
-                       (when (re-search-forward
-                              "^#\\+DESCRIPTION:[ \\t]+\\(.*\\)$" nil t)
-                         (match-string 1)))))
+         (description (my/extract-description abs-entry)))
     ;; RSS needs headlines with properties, not lists
     (format "* %s
 :PROPERTIES:
