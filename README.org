@@ -1,6 +1,6 @@
 #+TITLE: DrDos's Dotfiles
 #+AUTHOR: DrDos
-#+DATE: 2025-07-16
+#+DATE: 2025-11-08
 #+LANGUAGE: en
 #+OPTIONS:     toc:nil   ; kein automatisches Inhaltsverzeichnis
 #+PROPERTY:    header-args :eval never-export
@@ -10,10 +10,19 @@ This is the place where I store my personal config files.
 * Directory layout
 #+begin_example
 dotfiles/
+├── alacritty/
+│   ├── alacritty.toml       Main Alacritty configuration
+│   ├── local.toml.template  Template for local overrides
+│   ├── themes/              Solarized theme variants
+│   └── README.org           Alacritty-specific documentation
 ├── emacs/
 │   ├── init.el              Main Emacs configuration
 │   ├── lisp/                Local Emacs packages
 │   └── README.org           Emacs-specific documentation
+├── lsd/
+│   ├── config.yaml          lsDeluxe configuration
+│   ├── colors.yaml          Custom Solarized theme
+│   └── README.org           lsd-specific documentation
 ├── tmux/
 │   ├── .tmux.conf           Tmux configuration
 │   └── README.org           Tmux-specific documentation
