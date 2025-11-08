@@ -406,6 +406,30 @@
 (require 'website-publish)
 
 
+;; --- Per-Frame Setup -------------------------------------------------
+;; Hotfix for Daemon-Mode-Emacsclient only partially initialized
+(defun drdos/frame-setup (frame)
+  "Apply UI settings for new FRAME (GUI or TTY)."
+  (with-selected-frame frame
+    ;; Load theme idempotent
+    (load-theme 'solarized-light t)
+
+    (when (fboundp 'doom-modeline-mode)
+      (doom-modeline-mode 1))
+
+    (when (fboundp 'vertico-mode)
+      (vertico-mode 1))
+    ))
+
+;; Inclue every new Frame
+(add-hook 'after-make-frame-functions #'drdos/frame-setup)
+
+;; Also include the first frame (gui-start without daemon)
+(when (frame-live-p (selected-frame))
+  (drdos/frame-setup (selected-frame)))
+
+
+
 ;;;; Custom-Set-Variables added by packages -----------------------------
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
