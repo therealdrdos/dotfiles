@@ -5,6 +5,12 @@
 #+OPTIONS:     toc:nil   ; kein automatisches Inhaltsverzeichnis
 #+PROPERTY:    header-args :eval never-export
 
+[[https://github.com/therealdrdos/dotfiles/actions/workflows/commit-lint.yaml][https://github.com/therealdrdos/dotfiles/actions/workflows/commit-lint.yaml/badge.svg]]
+[[https://github.com/therealdrdos/dotfiles/actions/workflows/lint-yaml.yaml][https://github.com/therealdrdos/dotfiles/actions/workflows/lint-yaml.yaml/badge.svg]]
+[[https://github.com/therealdrdos/dotfiles/actions/workflows/lint-toml.yaml][https://github.com/therealdrdos/dotfiles/actions/workflows/lint-toml.yaml/badge.svg]]
+[[https://github.com/therealdrdos/dotfiles/actions/workflows/actionlint.yaml][https://github.com/therealdrdos/dotfiles/actions/workflows/actionlint.yaml/badge.svg]]
+[[https://github.com/therealdrdos/dotfiles/actions/workflows/secret-scan.yaml][https://github.com/therealdrdos/dotfiles/actions/workflows/secret-scan.yaml/badge.svg]]
+
 This is the place where I store my personal config files.
 
 * Directory layout
