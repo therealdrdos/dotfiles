@@ -153,8 +153,8 @@ This function is added as a buffer-local hook to `window-size-change-functions'.
   ;; Shell-ish modes.
   (dolist (hk '(shell-mode-hook eshell-mode-hook comint-mode-hook))
     (remove-hook hk #'terminal-fix--visual-cleanup))
-  ;; EAT if loaded.
-  (with-eval-after-load 'eat
+  ;; EAT if already loaded (don't use with-eval-after-load for cleanup).
+  (when (featurep 'eat)
     (remove-hook 'eat-mode-hook #'terminal-fix--enable-buffer)))
 
 ;;;###autoload
