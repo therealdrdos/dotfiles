@@ -37,6 +37,11 @@
 ;; Advanced:
 ;; - `my/site-root-reset': Clear cached root (useful after changing directories)
 ;; - `my/website-publish-mode-disable': Disable automatic root detection
+;; - `my/website-publish-force': Force-publish all files (ignores cache)
+;;
+;; Cache Behavior:
+;; - Automatic cleanup when entire site/ directory is deleted
+;; - Individual deleted files: use M-x my/website-publish-force or C-u M-x org-publish
 ;;
 
 
@@ -303,11 +308,43 @@ This allows publishing from any directory containing template.html."
 
 ;;;; Advice Management
 
+(defun my/org-publish-clean-stale-cache ()
+  "Clean org-publish cache if output directories are missing.
+This ensures files are republished when the site directory is deleted.
+
+NOTE: This only detects when the ENTIRE output directory is missing.
+Individual deleted files are not detected.  For that, use
+`my/website-publish-force' or `C-u M-x org-publish'."
+  (require 'ox-publish)
+  (when (boundp 'org-publish-timestamp-directory)
+    (let ((cache-dir (file-name-as-directory
+                      (expand-file-name org-publish-timestamp-directory))))
+      (when (file-directory-p cache-dir)
+        (dolist (cache-file (directory-files cache-dir t "\\.cache\\'"))
+          (let* ((project-name (file-name-base cache-file))
+                 (project (assoc project-name org-publish-project-alist)))
+            (when project
+              ;; Check if any output file is missing
+              (let* ((pub-dir (plist-get (cdr project) :publishing-directory))
+                     (outputs-missing (and pub-dir
+                                          (not (file-directory-p pub-dir)))))
+                (when outputs-missing
+                  (delete-file cache-file)
+                  (message "Cleaned stale cache for project '%s'" project-name))))))))))
+
+(defun my/website-publish-force ()
+  "Force-publish entire website, ignoring org-publish cache.
+Use this when individual files were deleted from output directory."
+  (interactive)
+  (org-publish "website" t)
+  (message "Force-published entire website"))
+
 (defun my/refresh-publish-alist-advice (&rest _args)
   "Refresh `org-publish-project-alist' before publishing.
 This ensures the correct website root is used based on current directory."
   (my/site-root-reset)
-  (my/setup-publish-alist))
+  (my/setup-publish-alist)
+  (my/org-publish-clean-stale-cache))
 
 (defun my/website-publish-mode-enable ()
   "Enable automatic project alist refresh for website publishing.
