@@ -32,7 +32,5 @@ jobs:
         uses: ibiqlik/action-yamllint@v3
         with:
           config_file: .yamllint
-          file_or_dir: |
-            lsd/
-            .github/workflows/
+          file_or_dir: "lsd/ .github/workflows/"
           strict: true
