@@ -65,6 +65,7 @@
 ;; Minibuffer history
 (setq history-length 25)
 (savehist-mode 1)
+(setq delete-by-moving-to-trash t)
 
 ;;; Keybinding to open init.el quickly
 (defun init ()
