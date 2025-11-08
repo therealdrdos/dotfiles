@@ -266,10 +266,26 @@ This ensures the correct website root is used based on current directory."
   (my/site-root-reset)
   (my/setup-publish-alist))
 
-(advice-add 'org-publish :before #'my/refresh-publish-alist-advice)
+(defun my/website-publish-mode-enable ()
+  "Enable automatic project alist refresh for website publishing.
+This adds advice to `org-publish' that ensures the correct website
+root is detected based on the current directory."
+  (interactive)
+  (advice-add 'org-publish :before #'my/refresh-publish-alist-advice)
+  (when (called-interactively-p 'any)
+    (message "Website publish mode enabled")))
+
+(defun my/website-publish-mode-disable ()
+  "Disable automatic project alist refresh for website publishing.
+This removes the advice from `org-publish'."
+  (interactive)
+  (advice-remove 'org-publish #'my/refresh-publish-alist-advice)
+  (when (called-interactively-p 'any)
+    (message "Website publish mode disabled")))
 
 ;; Initial setup
 (my/setup-publish-alist)
+(my/website-publish-mode-enable)
 
 
 (provide 'website-publish)
