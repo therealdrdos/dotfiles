@@ -23,6 +23,11 @@ dotfiles/
 │   ├── config.yaml          lsDeluxe configuration
 │   ├── colors.yaml          Custom Solarized theme
 │   └── README.org           lsd-specific documentation
+├── portage/
+│   ├── make.conf            Gentoo package manager configuration
+│   ├── package.use/         USE flags for specific packages
+│   ├── package.accept_keywords/  Testing packages
+│   └── README.org           Portage-specific documentation
 ├── tmux/
 │   ├── .tmux.conf           Tmux configuration
 │   └── README.org           Tmux-specific documentation

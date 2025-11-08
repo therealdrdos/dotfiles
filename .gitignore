@@ -2,3 +2,7 @@
 
 # Machine-specific overrides
 alacritty/local.toml
+
+# Portage backup files
+portage/package.use/*~
+portage/package.accept_keywords/*~
