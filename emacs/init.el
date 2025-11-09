@@ -219,22 +219,11 @@
 	  which-key-separator " → " ))
 
 ;; Linter
-;; Flycheck especially configured for Ansible and Yaml
+;; Flycheck
 ;; NOTE to myself: If I have problems with C, I should have a look at flycheck-pkg-config
 (use-package flycheck
   :ensure t
-  :init (global-flycheck-mode)
-  :config
-  (flycheck-define-checker ansible-lint
-    "A linter for ansible playbooks"
-    :command ("ansible-lint" "--parseable-severity" source-inplace)
-    :error-patterns
-    ((error line-start
-            (file-name) ":" line ":" column ":"
-            (id (one-or-more (not (any ":"))))
-            ": " (message)
-            line-end))
-    :modes yaml-mode))
+  :init (global-flycheck-mode))
 
 
 ;;;; Additional language support -----------------------------------------
@@ -271,6 +260,170 @@
   (setq yaml-indent-offset 2)
   )
 
+
+;;;; Ansible Development -------------------------------------------------
+
+;; Ansible minor mode with enhanced features
+(use-package ansible
+  :ensure t
+  :hook (yaml-mode . (lambda ()
+                       ;; Don't activate ansible-mode in vault files
+                       (unless (bound-and-true-p ansible-vault-mode)
+                         (ansible-mode)))))
+
+;; Inline Ansible module documentation
+(use-package ansible-doc
+  :ensure t
+  :after ansible
+  :bind (:map ansible-key-map
+         ("C-c C-d" . ansible-doc)))
+
+;; Transparent vault file editing
+(use-package ansible-vault
+  :ensure t
+  :config
+  ;; Auto-detect vault files
+  (add-to-list 'auto-mode-alist '("/vault\\.ya?ml\\'" . ansible-vault-mode))
+  (add-to-list 'auto-mode-alist '("/.*vault.*\\.ya?ml\\'" . ansible-vault-mode))
+
+  ;; Override password file discovery to search directory tree
+  (defun ansible-vault--guess-password-file ()
+    "Find vault password file by searching up the directory tree.
+
+First attempts to locate `.ansible_vault_pw` by traversing up from
+the current buffer's directory. If not found, falls back to the
+standard ansible-vault discovery methods (environment variables,
+ansible.cfg, and default password file location)."
+    (interactive)
+    (when (not ansible-vault--password-file)
+      ;; Try to find .ansible_vault_pw by searching up directory tree
+      (when-let* ((buffer-file (buffer-file-name))
+                  (password-dir (locate-dominating-file buffer-file ".ansible_vault_pw"))
+                  (password-file (expand-file-name ".ansible_vault_pw" password-dir)))
+        (setq-local ansible-vault--password-file password-file))
+
+      ;; Fall back to standard ansible-vault discovery methods
+      (when (not ansible-vault--password-file)
+        (let* ((env-val (or (getenv "ANSIBLE_VAULT_PASSWORD_FILE") ""))
+               (vault-id-pair (assoc ansible-vault--header-vault-id ansible-vault-vault-id-alist))
+               (ansible-config-path (ansible-vault--process-config-files)))
+          (cond
+           (vault-id-pair
+            (setq-local ansible-vault--vault-id (car vault-id-pair))
+            (setq-local ansible-vault--password-file (cdr vault-id-pair)))
+           (ansible-vault--header-vault-id
+            (ansible-vault--request-vault-id ansible-vault--header-vault-id))
+           (t (let ((password-file
+                     (or (and (not (string-empty-p env-val)) env-val)
+                         ansible-config-path
+                         ansible-vault-password-file)))
+                (setq-local ansible-vault--password-file password-file)))))))
+
+    ;; Prompt for password if file not found or unreadable
+    (when (not (and ansible-vault--password-file
+                    (file-readable-p ansible-vault--password-file)))
+      (let ((vault-id (or ansible-vault--header-vault-id ansible-vault--vault-id)))
+        (if vault-id
+            (ansible-vault--request-vault-id vault-id)
+          (call-interactively 'ansible-vault--request-password))))
+
+    ansible-vault--password-file)
+
+  ;; Hooks for transparent editing
+  (add-hook 'ansible-vault-mode-hook
+            (lambda ()
+              (setq-local require-final-newline nil)
+              (setq-local buffer-read-only nil)
+
+              ;; Enable YAML syntax highlighting
+              ;; Load yaml-mode features without activating the mode to avoid hooks
+              (require 'yaml-mode)
+              (setq-local font-lock-defaults '(yaml-font-lock-keywords))
+              (font-lock-mode 1))))
+
+;; Jinja2 template highlighting
+(use-package poly-ansible
+  :ensure t
+  :after ansible
+  :mode ("\\.j2\\'" "\\.jinja2\\'"))
+
+;; YAML indentation visual guides
+(use-package highlight-indentation
+  :ensure t
+  :hook ((yaml-mode . (lambda ()
+                        ;; Don't activate in vault files
+                        (unless (bound-and-true-p ansible-vault-mode)
+                          (highlight-indentation-mode))))
+         (yaml-mode . (lambda ()
+                        ;; Don't activate in vault files
+                        (unless (bound-and-true-p ansible-vault-mode)
+                          (highlight-indentation-current-column-mode)))))
+  :config
+  ;; Solarized Light compatible colors
+  (set-face-background 'highlight-indentation-face "#FDF6E3")
+  (set-face-background 'highlight-indentation-current-column-face "#EEE8D5"))
+
+;; Enhanced YAML/Ansible navigation
+(use-package yaml-imenu
+  :ensure t
+  :after yaml-mode
+  :config
+  (yaml-imenu-enable)
+
+  ;; Ansible-specific imenu patterns
+  (add-hook 'yaml-mode-hook
+            (lambda ()
+              ;; Don't set imenu in vault files
+              (unless (bound-and-true-p ansible-vault-mode)
+                (setq imenu-generic-expression
+                      '(("Tasks" "^- name: \\(.+\\)" 1)
+                        ("Roles" "^  role: \\(.+\\)" 1)
+                        ("Handlers" "^- name: \\(.+\\)" 1)
+                        ("Vars" "^\\([a-z_]+\\):" 1)))))))
+
+;; Flycheck: yamllint + ansible-lint chaining
+;; System dependency: pip install yamllint
+(with-eval-after-load 'flycheck
+  ;; yamllint - YAML syntax validation
+  (flycheck-define-checker yaml-yamllint
+    "YAML syntax checker using yamllint."
+    :command ("yamllint" "-f" "parsable" source)
+    :error-patterns
+    ((error line-start
+            (file-name) ":" line ":" column ": [error] "
+            (message) line-end)
+     (warning line-start
+              (file-name) ":" line ":" column ": [warning] "
+              (message) line-end))
+    :modes yaml-mode)
+
+  ;; ansible-lint
+  (flycheck-define-checker ansible-lint
+    "Ansible playbook linter for best practices."
+    :command ("ansible-lint"
+              "--parseable-severity"
+              "--nocolor"
+              "-f" "pep8"
+              source-inplace)
+    :error-patterns
+    ((error line-start
+            (file-name) ":" line ":"
+            (optional column ":")
+            " " (message) line-end))
+    :modes yaml-mode
+    :predicate (lambda ()
+                 ;; Only run on Ansible files
+                 (and (buffer-file-name)
+                      (or (string-match-p "playbook" (buffer-file-name))
+                          (string-match-p "roles/" (buffer-file-name))
+                          (string-match-p "tasks/" (buffer-file-name))
+                          (string-match-p "handlers/" (buffer-file-name))
+                          (string-match-p "vars/" (buffer-file-name))))))
+
+  ;; Chain: yamllint first, then ansible-lint
+  (flycheck-add-next-checker 'yaml-yamllint 'ansible-lint))
+
+
 (use-package dockerfile-mode
   :mode ("\\`Containerfile\\'" "\\`Dockerfile\\(?:\\..*\\)?\\'")
   :interpreter "dockerfile"
@@ -305,13 +458,22 @@
   (add-to-list 'company-backends 'company-web-html))
 
 ;;; Flycheck Stuff
-;; Eglot for C/C++
+;; Eglot for C/C++ and YAML/Ansible
 (use-package eglot
   :defer t
   :hook ((c-mode c++-mode objc-mode cuda-mode) . eglot-ensure)
+  :hook (yaml-mode . (lambda ()
+                       ;; Don't start eglot in vault files
+                       (unless (bound-and-true-p ansible-vault-mode)
+                         (eglot-ensure))))
   :config
   (setq eglot-autoshutdown t
-        eglot-events-buffer-size 0))
+        ;; Disable event logging (performance optimization)
+        eglot-events-buffer-config '(:size 0))
+
+  ;; Ansible Language Server (configured in Ansible Development section)
+  (add-to-list 'eglot-server-programs
+               '(yaml-mode . ("ansible-language-server" "--stdio"))))
 
 ;; Makes flycheck and eglot work together
 (use-package flycheck-eglot
@@ -436,13 +598,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(company-web dashboard dockerfile-mode doom-modeline emmet-mode
-		 fireplace flycheck-checkbashisms flycheck-eglot
-		 flycheck-rust hl-todo magit marginalia markdown-mode
-		 nerd-icons-dired org-superstar ox-rss php-mode
-		 reformatter rust-mode solarized-theme toc-org vertico
-		 yaml-mode yasnippet)))
+ '(package-selected-packages nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
