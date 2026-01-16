@@ -1,1 +1,9 @@
-alias emacs="emacsclient"
+alias emacs="emacsclient -nw"
+
+if (( $+commands[emerge] )); then
+  alias em='doas emerge'
+  alias emp='emerge --pretend'
+  alias ems='emerge --search'
+  alias emu='system-update'
+  alias emd='emerge --unmerge'
+fi
