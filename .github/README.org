@@ -4,7 +4,7 @@
 #+OPTIONS: toc:nil
 #+PROPERTY: header-args :eval never-export
 
-This is the place where I store my personal config files. I manage them via [[yadm][https://yadm.io/]].
+This is the place where I store my personal config files. I manage them via [[https://yadm.io/][yadm]].
 
 * Rights to use
 Feel free to include the dotfiles in your projects or to get inspiration from them. However, I won't provide any warranty on the quality of them.
