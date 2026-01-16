@@ -1,0 +1,32 @@
+### DrDos's lsd config
+color:
+  theme: custom
+  when: auto
+
+icons:
+  when: auto
+  theme: fancy
+
+blocks:
+  - permission
+  - user
+  - group
+  - size
+  - date
+  - name
+
+size: short         # B, KB, MB…
+date: date
+
+sorting:
+  column: name
+  reverse: false
+  dir-grouping: first
+
+layout: grid
+
+symlink-arrow: "→"
+indicators: true
+
+hyperlink: never
+dereference: false
