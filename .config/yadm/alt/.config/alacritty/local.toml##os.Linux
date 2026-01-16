@@ -1,0 +1,15 @@
+# Alacritty local overrides
+[terminal]
+shell = { program = "/bin/bash", args = ["-l"] }
+
+[font]
+size = 10.0
+
+[font.normal]
+family = "JetBrains Mono"
+
+[[hints.enabled]]
+regex = "(mailto:|https?://)[^\\s<>]+"
+command = { program = "xdg-open", args = ["{0}"] }
+post_processing = true
+mouse = { enabled = false }

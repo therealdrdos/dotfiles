@@ -1,0 +1,18 @@
+# Alacritty local overrides
+[terminal]
+shell = { program = "/bin/zsh", args = ["-l"] }
+
+[window]
+option_as_alt = "OnlyLeft"
+
+[font]
+size = 14.0
+
+[font.normal]
+family = "DroidSansM Nerd Font"
+
+[[hints.enabled]]
+regex = "(mailto:|https?://)[^\\s<>]+"
+command = { program = "open", args = ["{0}"] }
+post_processing = true
+mouse = { enabled = false }
