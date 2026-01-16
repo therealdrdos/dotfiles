@@ -1,0 +1,24 @@
+## MacPorts man pages
+manpath=(
+  /opt/local/share/man
+  $manpath
+)
+
+## Completions
+fpath=(
+  /opt/local/share/zsh/site-functions
+  /opt/local/share/zsh/functions
+  $fpath
+)
+
+## MacPorts cert fix
+export SSL_CERT_FILE=/opt/local/etc/openssl/cert.pem
+export SSL_CERT_DIR=/opt/local/etc/openssl/certs
+export REQUESTS_CA_BUNDLE=$SSL_CERT_FILE
+
+if (( $+commands[port] )); then
+  alias po='port'
+  alias poi='sudo port install'
+  alias pos='port search'
+  alias pou='sudo port selfupdate && sudo port upgrade outdated'
+fi
