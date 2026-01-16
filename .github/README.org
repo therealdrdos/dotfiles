@@ -1,0 +1,11 @@
+#+TITLE: DrDos's Dotfiles
+#+AUTHOR: DrDos
+#+LANGUAGE: en
+#+OPTIONS: toc:nil
+#+PROPERTY: header-args :eval never-export
+
+This is the place where I store my personal config files. I manage them via [[yadm][https://yadm.io/]].
+
+* Rights to use
+Feel free to include the dotfiles in your projects or to get inspiration from them. However, I won't provide any warranty on the quality of them.
+They are my personal files and I try to keep them up to date with general security/implementation recommendations, but there is no guarantee on that.
