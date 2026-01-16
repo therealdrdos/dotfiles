@@ -100,7 +100,7 @@ zstyle ':vcs_info:git:*' actionformats '(%b|%a)'
 _precmd_vcs() { vcs_info 2>/dev/null; }
 add-zsh-hook precmd _precmd_vcs
 autoload -Uz colors && colors
-PROMPT='%F{green}%n@%m%f:%F{blue}%~%f ${vcs_info_msg_0_}%F{blue}%#%f '
+PROMPT='%B%F{green}%n@%m%f:%F{blue}%~%f ${vcs_info_msg_0_}%F{blue}%#%f%b '
 
 # Aliases
 alias emacs="emacs -nw"
