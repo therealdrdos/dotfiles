@@ -1,7 +1,4 @@
 # Alacritty local overrides
-[terminal]
-shell = { program = "/bin/zsh", args = ["-l"] }
-
 [window]
 option_as_alt = "OnlyLeft"
 

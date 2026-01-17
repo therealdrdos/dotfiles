@@ -1,7 +1,4 @@
 # Alacritty local overrides
-[terminal]
-shell = { program = "/bin/bash", args = ["-l"] }
-
 [font]
 size = 10.0
 
