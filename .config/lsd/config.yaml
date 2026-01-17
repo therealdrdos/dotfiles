@@ -15,7 +15,7 @@ blocks:
   - date
   - name
 
-size: short         # B, KB, MB…
+size: short # B, KB, MB…
 date: date
 
 sorting:

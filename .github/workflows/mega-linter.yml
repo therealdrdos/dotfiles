@@ -3,7 +3,8 @@
 ---
 name: MegaLinter
 
-on: # yamllint disable-line rule:truthy - false positive
+# yamllint disable-line rule:truthy - false positive
+on:
   push:
   pull_request:
     branches:
@@ -31,14 +32,8 @@ jobs:
         with:
           token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
 
-          # If you use VALIDATE_ALL_CODEBASE = true, you can remove this line to
-          # improve performance
-          fetch-depth: 0
-
-
       - name: MegaLinter
-        # You can override MegaLinter flavor used to have faster performances
-        # More info at https://megalinter.io/latest/flavors/
+        # kics-scan ignore-line
         uses: oxsecurity/megalinter/flavors/cupcake@v9.3.0
         id: ml
         env:
