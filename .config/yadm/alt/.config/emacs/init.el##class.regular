@@ -778,7 +778,16 @@
 
 ;;;; Fun
 (use-package fireplace
-  :ensure t)
+  :ensure t
+  :hook (fireplace-mode . (lambda () (display-line-numbers-mode -1))))
+
+(dolist (hook '(tetris-mode-hook snake-mode-hook pong-mode-hook dunnet-mode-hook
+                bubbles-mode-hook gomoku-mode-hook hanoi-mode-hook life-mode-hook
+                solitaire-mode-hook zone-mode-hook doctor-mode-hook
+                help-mode-hook Info-mode-hook Man-mode-hook woman-mode-hook
+                calendar-mode-hook compilation-mode-hook eww-mode-hook image-mode-hook
+                eshell-mode-hook shell-mode-hook term-mode-hook))
+  (add-hook hook (lambda () (display-line-numbers-mode -1))))
 
 
 ;;;; Website export functionality
