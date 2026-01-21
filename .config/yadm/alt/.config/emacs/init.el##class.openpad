@@ -61,8 +61,10 @@
   (load custom-file 'noerror))
 
 (defvar my/mono-font "CodeNewRoman Nerd Font")
-(add-to-list 'default-frame-alist '(font . "CodeNewRoman Nerd Font-12"))
-(set-face-attribute 'default nil :family my/mono-font :height 120)
+(add-to-list 'default-frame-alist '(font . "CodeNewRoman Nerd Font-11"))
+(add-to-list 'default-frame-alist '(width . 139))
+(add-to-list 'default-frame-alist '(height . 35))
+(set-face-attribute 'default nil :family my/mono-font :height 110)
 
 (setq backup-directory-alist `(("." . ,my/backup-dir)))
 (setq auto-save-file-name-transforms `((".*" ,my/autosave-dir t)))
