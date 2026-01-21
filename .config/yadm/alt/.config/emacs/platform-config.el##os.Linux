@@ -1,8 +1,9 @@
 ;;; platform-config.el --- Linux-specific configuration -*- lexical-binding: t -*-
 
 ;;; Font
+(defvar my/mono-font "JetBrainsMono Nerd Font Mono")
 (add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font Mono-12"))
-(set-face-attribute 'default nil :family "JetBrainsMono Nerd Font Mono" :height 120)
+(set-face-attribute 'default nil :family my/mono-font :height 120)
 
 ;;; Desktop notifications via D-Bus
 (setq alert-default-style 'notifications)

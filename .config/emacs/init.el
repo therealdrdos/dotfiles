@@ -162,7 +162,7 @@
 ;; Make the document title a bit bigger
 (with-eval-after-load 'org-faces
   (set-face-attribute 'org-document-title nil
-                      :font "JetBrainsMono Nerd Font Mono"
+                      :font my/mono-font
                       :weight 'bold
                       :height 1.8))
 
@@ -312,7 +312,7 @@
                   (org-level-6 . 1.1)
                   (org-level-7 . 1.1)
                   (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "JetBrainsMono Nerd Font Mono" :weight 'bold :height (cdr face))))
+    (set-face-attribute (car face) nil :font my/mono-font :weight 'bold :height (cdr face))))
 
 ;;;; Org mode custom functions
 (defun my/org-fold-completed-tasks ()
@@ -813,7 +813,10 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(org-agenda-files '("~/Documents/Notizen/todo/agenda.org"))
- '(package-selected-packages nil))
+ '(package-selected-packages nil)
+ '(package-vc-selected-packages
+   '((claude-code :url "https://github.com/stevemolitor/claude-code.el")
+     (monet :url "https://github.com/stevemolitor/monet"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

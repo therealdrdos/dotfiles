@@ -1,8 +1,9 @@
 ;;; platform-config.el --- macOS-specific configuration -*- lexical-binding: t -*-
 
 ;;; Font
-(add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font Mono-14"))
-(set-face-attribute 'default nil :family "JetBrainsMono Nerd Font Mono" :height 140)
+(defvar my/mono-font "DroidSansM Nerd Font")
+(add-to-list 'default-frame-alist '(font . "DroidSansM Nerd Font-14"))
+(set-face-attribute 'default nil :family my/mono-font :height 140)
 
 ;;; PATH from shell
 (use-package exec-path-from-shell
