@@ -20,6 +20,8 @@
 (setq ns-use-native-fullscreen t)
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 (add-to-list 'default-frame-alist '(ns-appearance . light))
+(add-to-list 'default-frame-alist '(width . 107))
+(add-to-list 'default-frame-alist '(height . 41))
 
 ;;; Trackpad pixel-scrolling
 (pixel-scroll-precision-mode 1)
