@@ -69,6 +69,11 @@
 (dolist (d (list my/cache-dir my/backup-dir my/autosave-dir))
   (unless (file-directory-p d) (make-directory d t)))
 
+;; Keep custom-set-variables out of init.el
+(setq custom-file (expand-file-name "custom-vars.el" user-emacs-directory))
+(when (file-exists-p custom-file)
+  (load custom-file 'noerror))
+
 ;; Load platform-specific configuration (managed by yadm alt)
 (load (expand-file-name "platform-config" user-emacs-directory) t)
 
@@ -804,25 +809,6 @@
 (when (frame-live-p (selected-frame))
   (drdos/frame-setup (selected-frame)))
 
-
-
-;;;; Custom-Set-Variables added by packages
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(org-agenda-files '("~/Documents/Notizen/todo/agenda.org"))
- '(package-selected-packages nil)
- '(package-vc-selected-packages
-   '((claude-code :url "https://github.com/stevemolitor/claude-code.el")
-     (monet :url "https://github.com/stevemolitor/monet"))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
 
 
 (provide 'init)
