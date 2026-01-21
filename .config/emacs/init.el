@@ -1,0 +1,826 @@
+;;; init.el --- DrDos Emacs Configuration File -*- lexical-binding: t; coding: utf-8; -*-
+
+;;; Commentary:
+;; Copyright (C) 2025  DrDos
+;; Author: DrDos <user173@dr-dos.org>
+;; This file is NOT part of GNU Emacs.
+
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; 1. Redistributions of source code must retain the above copyright notice,
+;;    this list of conditions and the following disclaimer.
+;; 2. Redistributions in binary form must reproduce the above copyright notice,
+;;    this list of conditions and the following disclaimer in the documentation
+;;    and/or other materials provided with the distribution.
+;; 3. Neither the name of the copyright holder nor the names of its
+;;    contributors may be used to endorse or promote products derived from this
+;;    software without specific prior written permission.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+
+;; Use C-M-x to evaluate while editing
+;; Use C-M-i to get autocompletion inside the editor buffer
+;; Packages to install system-wide for this config to work:
+;; - A nerd font
+;; - Linters:
+;;   - ansible-lint (Ansible)
+;;   - pylint (Python)
+;;   - eslint (JavaScript)
+;; - For Language Support:
+;;   - cmake (For C/C++)
+;;   - devscripts (Only on Debian, visit https://github.com/cuonglm/flycheck-checkbashisms for more)
+;;   - clang-tidy (For C/C++)
+;;   - tidy (For HTML)
+
+
+;;; Code:
+;;;; Basic Configuration
+
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(blink-cursor-mode -1)
+(global-hl-line-mode 1)
+(global-display-line-numbers-mode 1)
+(recentf-mode 1)
+(save-place-mode 1)  ; remember edit position in files
+(global-auto-revert-mode 1)  ; watch for file changes and refresh on-change
+(delete-selection-mode 1)  ; selected text gets deleted when typing
+(set-language-environment "UTF-8")
+(prefer-coding-system 'utf-8-unix)
+(setopt use-short-answers t)
+(show-paren-mode 1)
+
+;; filesystem stuff
+(defconst my/cache-dir (expand-file-name "emacs-cache/" user-emacs-directory))
+(defconst my/backup-dir (expand-file-name "backups/" my/cache-dir))
+(defconst my/autosave-dir (expand-file-name "autosaves/" my/cache-dir))
+
+(dolist (d (list my/cache-dir my/backup-dir my/autosave-dir))
+  (unless (file-directory-p d) (make-directory d t)))
+
+;; Load platform-specific configuration (managed by yadm alt)
+(load (expand-file-name "platform-config" user-emacs-directory) t)
+
+(setq backup-directory-alist `(("." . ,my/backup-dir)))
+(setq auto-save-file-name-transforms `((".*" ,my/autosave-dir t)))
+(setq auto-save-default t)
+(setq create-lockfiles t)
+(setq delete-old-versions t
+      kept-new-versions 8
+      kept-old-versions 1
+      version-control t)
+
+(setq initial-scratch-message nil)
+(setq visible-bell t)
+(setq global-auto-revert-non-file-buffers t) ; refresh dired and co on changes automatically
+(global-set-key [escape] 'keyboard-escape-quit) ; Escape Minibuffer with one not three escape presses
+(setq history-length 100)
+(setq recentf-max-saved-items 100)
+(setq delete-by-moving-to-trash t)
+(setq-default indent-tabs-mode nil)
+(setq-default tab-width 4)
+(setq require-final-newline t)
+
+;;; Keybinding to open init.el quickly
+(defun init ()
+  "Quickly open the init.el config file."
+  (interactive)
+  (find-file "~/.config/emacs/init.el"))
+
+
+;;;; Package Management
+
+;; Setup
+(require 'package)
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("gnu" . "https://elpa.gnu.org/packages/")
+                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+(package-initialize)
+;; refresh if archive is empty
+(unless package-archive-contents
+  (package-refresh-contents))
+(require 'use-package)
+(setq use-package-always-ensure t)
+(setq use-package-always-defer t)
+(setq use-package-expand-minimally t)
+
+
+;;;; Theming
+
+;; Theme
+(use-package solarized-theme
+  :ensure t
+  :demand t
+  :init
+  (setq solarized-use-variable-pitch t)
+  (setq solarized-scale-org-headlines t)
+  (setq solarized-high-contrast-mode-line t)
+  (setq solarized-highlight-numbers t)
+  :config
+  (load-theme 'solarized-light t))
+
+(add-hook 'text-mode-hook #'visual-line-mode)
+
+(setq-default line-spacing 0.15)
+(setq-default fill-column 80)
+
+(global-display-fill-column-indicator-mode t) ; visual line after 80 chars
+
+;; Nerd Font (platform-specific font size loaded from platform-config.el)
+(use-package nerd-icons
+  :ensure t
+  :demand t)
+
+(use-package doom-modeline
+  :ensure t
+  :demand t
+  :init (doom-modeline-mode 1))
+
+(use-package dashboard
+  :ensure t
+  :demand t
+  :config
+  (setq dashboard-startup-banner 'official
+        dashboard-items '((recents  . 4)
+                          (bookmarks . 5)))
+  (dashboard-setup-startup-hook))
+
+
+;;;; Org-Mode
+(require 'org)
+;; Make the document title a bit bigger
+(with-eval-after-load 'org-faces
+  (set-face-attribute 'org-document-title nil
+                      :font "JetBrainsMono Nerd Font Mono"
+                      :weight 'bold
+                      :height 1.8))
+
+
+(global-set-key (kbd "C-c l") #'org-store-link)
+(global-set-key (kbd "C-c a") #'org-agenda)
+(global-set-key (kbd "C-c c") #'org-capture)
+
+(setq org-log-done 'time)
+
+(use-package toc-org ; enabling table of contents
+  :ensure t
+  :commands toc-org-enable
+  :init (add-hook 'org-mode-hook 'toc-org-enable))
+
+;; Styling with variable pitch
+(with-eval-after-load 'org-faces
+  (when (facep 'org-block)
+    (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch :height 0.85))
+  (when (facep 'org-code)
+    (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch) :height 0.85))
+  (when (facep 'org-verbatim)
+    (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch) :height 0.85))
+  (when (facep 'org-special-keyword)
+    (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch)))
+  (when (facep 'org-meta-line)
+    (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch)))
+  (when (facep 'org-checkbox)
+    (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)))
+
+(with-eval-after-load 'org-indent
+  (when (facep 'org-indent)
+    (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch) :height 0.85)))
+(add-hook 'org-mode-hook 'variable-pitch-mode)
+
+;; Fix latex preview size
+(plist-put org-format-latex-options :scale 2)
+
+;; Declutter stuff
+(setq org-adapt-indentation t
+      org-hide-leading-stars t
+      org-hide-emphasis-markers t
+      org-pretty-entities t
+      org-ellipsis "  -><-")
+
+;; Display code blocks normally and fix tab usage inside of code blocks
+(setq org-src-fontify-natively t
+      org-src-tab-acts-natively t
+      org-edit-src-content-indentation 0)
+
+(add-hook 'org-mode-hook 'org-indent-mode)
+(add-hook 'org-mode-hook (lambda () (org-superstar-mode 1)))
+
+(setq org-todo-keywords
+      '((sequence
+         "PROJ(p)"
+         "HOLD(h)"
+         "|"
+         "DONE(d)" "CANCELLED(c)")
+
+        (sequence
+         "TODO(t)" "URGENT(u)" "ONGOING(o)" "WAITING(w)"
+         "|"
+         "DONE(d)" "ABORT(a)")))
+
+;; Highlight TODO and other words
+(use-package hl-todo
+  :ensure t
+  :demand t
+  :hook ((org-mode . hl-todo-mode)
+         (prog-mode . hl-todo-mode))
+  :config
+  (setq hl-todo-highlight-punctuation ":"
+        hl-todo-keyword-faces
+        `(("TODO"       warning bold)
+          ("URGENT"     error bold)
+          ("DONE"       success bold)
+          ("PROJ"       font-lock-constant-face bold)
+          ("HOLD"       shadow)
+          ("CANCELLED"  shadow bold)
+          ("ONGOING"    font-lock-keyword-face bold)
+          ("WAITING"    font-lock-string-face bold)
+          ("ABORT"      shadow bold))))
+
+(setq org-lowest-priority ?F)  ;; Gives us priorities A through F
+(setq org-default-priority ?E) ;; If an item has no priority, it is considered [#E]
+
+(setq org-priority-faces
+      '((65 . "#BF616A")
+        (66 . "#EBCB8B")
+        (67 . "#B48EAD")
+        (68 . "#81A1C1")
+        (69 . "#5E81AC")
+        (70 . "#4C566A")))
+
+(use-package org-modern
+  :ensure t
+  :config
+  (setq
+   org-auto-align-tags t
+   org-tags-column 0
+   org-fold-catch-invisible-edits 'show-and-error
+   org-special-ctrl-a/e t
+   org-insert-heading-respect-content t
+
+   ;; Don't style the following
+   ;; org-modern-tag nil
+   ;; org-modern-priority nil
+   org-modern-todo nil
+   ;; org-modern-table nil
+
+   ;; Agenda styling
+   org-agenda-tags-column 0
+   org-agenda-block-separator ?─
+   org-agenda-time-grid
+   '((daily today require-timed)
+     (800 1000 1200 1400 1600 1800 2000)
+     " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+   org-agenda-current-time-string
+   "⭠ now ─────────────────────────────────────────────────")
+
+  (global-org-modern-mode))
+
+(use-package org-superstar
+  :ensure t
+  :config
+  (setq org-superstar-leading-bullet " ")
+  (setq org-superstar-special-todo-items t) ;; Makes TODO header bullets into boxes
+  (setq org-superstar-todo-bullet-alist '(("TODO" . 9744)
+                                          ("DONE" . 9744)
+                                          ("URGENT" . 9744)
+                                          ("ONGOING" . 9744)
+                                          ("WAITING" . 9744)
+                                          ("CANCELLED" . 9744)
+                                          ("PROJ" . 9744)
+                                          ("HOLD" . 9744)
+                                          ("ABORT" . 9744)
+                                          ("POSTPONED" . 9744))))
+
+;; Resize Org headings
+(with-eval-after-load 'org-faces
+  (dolist (face '((org-level-1 . 1.35)
+                  (org-level-2 . 1.3)
+                  (org-level-3 . 1.2)
+                  (org-level-4 . 1.1)
+                  (org-level-5 . 1.1)
+                  (org-level-6 . 1.1)
+                  (org-level-7 . 1.1)
+                  (org-level-8 . 1.1)))
+    (set-face-attribute (car face) nil :font "JetBrainsMono Nerd Font Mono" :weight 'bold :height (cdr face))))
+
+;;;; Org mode custom functions
+(defun my/org-fold-completed-tasks ()
+  "Fold all DONE tasks in buffer."
+  (interactive)
+  (when (derived-mode-p 'org-mode)
+    (save-excursion
+      (org-fold-show-all)
+
+      (org-map-entries
+       (lambda ()
+         (let ((state (org-get-todo-state)))
+           (when (and state (member state org-done-keywords))
+             (org-fold-subtree t))))
+       nil 'file))))
+(add-hook 'org-mode-hook #'my/org-fold-completed-tasks)
+
+;;;; Minibuffer tweaks
+
+;; Minibuffer completions
+(use-package vertico
+  :ensure t
+  :demand t
+  :custom
+  (vertico-resize t) ;; Resize dynamically
+  (vertico-cycle t) ;; Enable cycling for `vertico-next/previous'
+  :init
+  (vertico-mode))
+
+;; Enable rich annotations
+(use-package marginalia
+  :ensure t
+  :demand t
+  ;; Bind `marginalia-cycle' locally in the minibuffer.  To make the binding
+  ;; available in the *Completions* buffer, add it to the
+  ;; `completion-list-mode-map'.
+  :bind (:map minibuffer-local-map
+         ("M-A" . marginalia-cycle))
+  :init
+  (marginalia-mode))
+
+(use-package orderless
+  :ensure t
+  :demand t
+  :init
+  (setq completion-styles '(orderless basic)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles partial-completion)))))
+
+(use-package wgrep
+  :ensure t
+  :demand t
+  :config
+  (setq wgrep-auto-save-buffer t))
+
+(use-package consult
+  :ensure t
+  :demand t
+  :bind (("C-s" . consult-line)
+         ("C-x b" . consult-buffer)
+         ("C-x C-r" . consult-recent-file)
+         ("M-y" . consult-yank-pop)))
+
+(use-package embark
+  :ensure t
+  :demand t
+  :bind (("C-." . embark-act)
+         ("C-;" . embark-dwim))
+  :init
+  (setq prefix-help-command #'embark-prefix-help-command))
+
+(use-package embark-consult
+  :ensure t
+  :demand t
+  :after (embark consult))
+
+;; Connect embark and wgrep
+(add-hook 'embark-consult-after-export-hook
+          (lambda ()
+            (when (derived-mode-p 'grep-mode)
+              (wgrep-change-to-wgrep-mode))))
+
+(use-package nerd-icons-dired
+  :ensure t
+  :demand t
+  :hook
+  (dired-mode . nerd-icons-dired-mode))
+
+;; Persist history over Emacs restarts
+(use-package savehist
+  :ensure nil
+  :demand t
+  :init
+  (savehist-mode))
+
+
+;;;; Additional packages
+
+;; Allow the emacsclient to be the editor
+(use-package with-editor
+  :ensure t)
+
+(use-package magit
+  :ensure t)
+
+(use-package alert
+  :ensure t)
+
+(use-package diff-hl
+  :ensure t
+  :hook ((prog-mode . diff-hl-mode)
+         (text-mode . diff-hl-mode))
+  :config
+  (diff-hl-flydiff-mode 1)
+  (add-hook 'magit-pre-refresh-hook  #'diff-hl-magit-pre-refresh)
+  (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh))
+
+(use-package which-key
+  :ensure t
+  :demand t
+  :init
+  (which-key-mode 1)
+  :config
+  (setq which-key-side-window-location 'bottom
+        which-key-sort-order #'which-key-key-order-alpha
+        which-key-sort-uppercase-first nil
+        which-key-add-column-padding 1
+        which-key-max-display-columns nil
+        which-key-min-display-lines 6
+        which-key-side-window-slot -10
+        which-key-side-window-max-height 0.25
+        which-key-idle-delay 0.3
+        which-key-max-description-length 25
+        which-key-allow-imprecise-window-fit t
+        which-key-separator " → "))
+
+;; Linter
+;; Flycheck
+;; NOTE to myself: If I have problems with C, I should have a look at flycheck-pkg-config
+(use-package flycheck
+  :ensure t
+  :init (global-flycheck-mode))
+
+
+;;;; Additional language support
+
+(setq major-mode-remap-alist
+      '((c-mode          . c-ts-mode)
+        (c++-mode        . c++-ts-mode)
+        (python-mode     . python-ts-mode)
+        (css-mode        . css-ts-mode)
+        (json-mode       . json-ts-mode)
+        (sh-mode         . bash-ts-mode)))
+
+(use-package php-mode
+  :ensure t)
+
+(use-package markdown-mode
+  :ensure t
+  :mode ("README\\.md\\'" . gfm-mode)
+  :init (setq markdown-command "multimarkdown")
+  :bind (:map markdown-mode-map
+         ("C-c C-e" . markdown-do)))
+
+(use-package yaml-mode
+  :ensure t
+  :config
+  (setq yaml-indent-offset 2))
+
+
+;;;; Ansible Development
+
+(use-package ansible
+  :ensure t
+  :hook (yaml-mode . (lambda ()
+                       ;; Don't activate ansible-mode in vault files
+                       (unless (bound-and-true-p ansible-vault-mode)
+                         (ansible-mode)))))
+
+;; Inline Ansible module documentation
+(use-package ansible-doc
+  :ensure t
+  :after ansible
+  :bind (:map ansible-key-map
+         ("C-c C-d" . ansible-doc)))
+
+;; Transparent vault file editing
+(use-package ansible-vault
+  :ensure t
+  :config
+  ;; Auto-detect vault files
+  (add-to-list 'auto-mode-alist '("/vault\\.ya?ml\\'" . ansible-vault-mode))
+  (add-to-list 'auto-mode-alist '("/.*vault.*\\.ya?ml\\'" . ansible-vault-mode))
+
+  ;; Override password file discovery to search directory tree
+  (defun ansible-vault--guess-password-file ()
+    "Find .ansible_vault_pw by walking up dirs, fallback to defaults."
+    (interactive)
+    (when (not ansible-vault--password-file)
+      ;; Try to find .ansible_vault_pw by searching up directory tree
+      (when-let* ((buffer-file (buffer-file-name))
+                  (password-dir (locate-dominating-file buffer-file ".ansible_vault_pw"))
+                  (password-file (expand-file-name ".ansible_vault_pw" password-dir)))
+        (setq-local ansible-vault--password-file password-file))
+
+      ;; Fall back to standard ansible-vault discovery methods
+      (when (not ansible-vault--password-file)
+        (let* ((env-val (or (getenv "ANSIBLE_VAULT_PASSWORD_FILE") ""))
+               (vault-id-pair (assoc ansible-vault--header-vault-id ansible-vault-vault-id-alist))
+               (ansible-config-path (ansible-vault--process-config-files)))
+          (cond
+           (vault-id-pair
+            (setq-local ansible-vault--vault-id (car vault-id-pair))
+            (setq-local ansible-vault--password-file (cdr vault-id-pair)))
+           (ansible-vault--header-vault-id
+            (ansible-vault--request-vault-id ansible-vault--header-vault-id))
+           (t (let ((password-file
+                     (or (and (not (string-empty-p env-val)) env-val)
+                         ansible-config-path
+                         ansible-vault-password-file)))
+                (setq-local ansible-vault--password-file password-file)))))))
+
+    ;; Prompt for password if file not found or unreadable
+    (when (not (and ansible-vault--password-file
+                    (file-readable-p ansible-vault--password-file)))
+      (let ((vault-id (or ansible-vault--header-vault-id ansible-vault--vault-id)))
+        (if vault-id
+            (ansible-vault--request-vault-id vault-id)
+          (call-interactively 'ansible-vault--request-password))))
+
+    ansible-vault--password-file)
+
+  (add-hook 'ansible-vault-mode-hook
+            (lambda ()
+              (setq-local require-final-newline nil)
+              (setq-local buffer-read-only nil)
+              ;; yaml-mode features without activating the mode (avoids hooks)
+              (require 'yaml-mode)
+              (setq-local font-lock-defaults '(yaml-font-lock-keywords))
+              (font-lock-mode 1))))
+
+;; Jinja2 template highlighting
+(use-package poly-ansible
+  :ensure t
+  :after ansible
+  :mode ("\\.j2\\'" "\\.jinja2\\'"))
+
+(use-package highlight-indentation
+  :ensure t
+  :hook ((yaml-mode . (lambda ()
+                        ;; skip vault files
+                        (unless (bound-and-true-p ansible-vault-mode)
+                          (highlight-indentation-mode)
+                          (highlight-indentation-current-column-mode)))))
+  :config
+  ;; Solarized Light compatible colors
+  (set-face-background 'highlight-indentation-face "#FDF6E3")
+  (set-face-background 'highlight-indentation-current-column-face "#EEE8D5"))
+
+(use-package yaml-imenu
+  :ensure t
+  :after yaml-mode
+  :config
+  (yaml-imenu-enable)
+
+  ;; Ansible-specific imenu patterns
+  (add-hook 'yaml-mode-hook
+            (lambda ()
+              ;; Don't set imenu in vault files
+              (unless (bound-and-true-p ansible-vault-mode)
+                (setq imenu-generic-expression
+                      '(("Tasks" "^- name: \\(.+\\)" 1)
+                        ("Roles" "^  role: \\(.+\\)" 1)
+                        ("Vars" "^\\([a-z_]+\\):" 1)))))))
+
+;; Flycheck: yamllint + ansible-lint chaining
+(with-eval-after-load 'flycheck
+  (flycheck-define-checker yaml-yamllint
+    "YAML syntax checker using yamllint."
+    :command ("yamllint" "-f" "parsable" source)
+    :error-patterns
+    ((error line-start
+            (file-name) ":" line ":" column ": [error] "
+            (message) line-end)
+     (warning line-start
+              (file-name) ":" line ":" column ": [warning] "
+              (message) line-end))
+    :modes yaml-mode)
+
+  (flycheck-define-checker ansible-lint
+    "Ansible playbook linter."
+    :command ("ansible-lint"
+              "--parseable-severity"
+              "--nocolor"
+              "-f" "pep8"
+              source-inplace)
+    :error-patterns
+    ((error line-start
+            (file-name) ":" line ":"
+            (optional column ":")
+            " " (message) line-end))
+    :modes yaml-mode
+    :predicate (lambda ()
+                 ;; Only run on Ansible files
+                 (and (buffer-file-name)
+                      (or (string-match-p "playbook" (buffer-file-name))
+                          (string-match-p "roles/" (buffer-file-name))
+                          (string-match-p "tasks/" (buffer-file-name))
+                          (string-match-p "handlers/" (buffer-file-name))
+                          (string-match-p "vars/" (buffer-file-name))))))
+
+  (flycheck-add-next-checker 'yaml-yamllint 'ansible-lint))
+
+
+(use-package dockerfile-mode
+  :ensure t
+  :mode ("\\`Containerfile\\'" "\\`Dockerfile\\(?:\\..*\\)?\\'")
+  :interpreter "dockerfile"
+  :init
+  ;; highlight build stages
+  (setq dockerfile-use-buildkit t))
+
+(use-package docker
+  :ensure t
+  :bind ("C-c d" . docker))
+
+(use-package rust-mode
+  :ensure t
+  :config
+  (setq rust-format-on-save t))
+
+(use-package go-mode
+  :ensure t)
+
+(use-package riscv-mode
+  :ensure t)
+
+(use-package verilog-mode
+  :ensure nil)
+
+(use-package js2-mode
+  :ensure t)
+
+(use-package web-mode
+  :ensure t)
+
+(use-package company
+  :ensure t
+  :init (global-company-mode))
+
+;; HTML Prettier on save
+(use-package reformatter
+  :ensure t)
+(reformatter-define prettier-format
+  :program "prettier" :args '("--stdin-filepath" input-file))
+(add-hook 'html-ts-mode-hook #'prettier-format-on-save-mode)
+
+;; Company-Mode for Web Development
+(use-package company-web
+  :ensure t
+  :after company
+  :config
+  (add-to-list 'company-backends 'company-web-html))
+
+;;;; Flycheck Stuff
+;; Eglot for C/C++ and YAML/Ansible
+(use-package eglot
+  :ensure nil
+  :defer t
+  :hook ((c-mode c++-mode objc-mode cuda-mode) . eglot-ensure)
+  :hook (yaml-mode . (lambda ()
+                       ;; Don't start eglot in vault files
+                       (unless (bound-and-true-p ansible-vault-mode)
+                         (eglot-ensure))))
+  :config
+  (setq eglot-autoshutdown t
+        ;; Disable event logging (performance optimization)
+        eglot-events-buffer-config '(:size 0))
+
+  (add-to-list 'eglot-server-programs
+               '(yaml-mode . ("ansible-language-server" "--stdio"))))
+
+;; Makes flycheck and eglot work together
+(use-package flycheck-eglot
+  :ensure t
+  :after (flycheck eglot)
+  :config
+  (global-flycheck-eglot-mode 1))
+
+(use-package yasnippet
+  :ensure t
+  :init (yas-global-mode))
+
+(use-package emmet-mode
+  :ensure t
+  :hook  (html-ts-mode . emmet-mode)
+  :config (setq emmet-move-cursor-between-quotes t))
+
+(add-to-list 'auto-mode-alist '("\\.css\\'" . css-ts-mode))
+
+;; flycheck-checkbashisms loaded from platform-config.el (Linux only)
+
+(use-package flycheck-rust
+  :ensure t
+  :after (rust-mode flycheck)
+  :hook (rust-mode . flycheck-rust-setup))
+
+
+;;;; Claude-Code
+;; install required inheritenv dependency:
+(use-package inheritenv
+  :vc (:url "https://github.com/purcell/inheritenv" :rev :newest))
+
+;; eat terminal backend
+(use-package eat
+  :ensure t
+  :config
+  (setq eat-kill-buffer-on-exit t)
+  (setq eat-term-name "xterm-direct"))
+
+;; monet package for mcp
+(use-package monet
+  :vc (:url "https://github.com/stevemolitor/monet" :rev :newest)
+  :config
+  (setq monet-diff-tool #'monet-ediff-tool)
+  (setq monet-diff-cleanup-tool #'monet-ediff-cleanup-tool)
+  (setq monet-ediff-quit-key "C-g"))
+
+;; install claude-code.el
+(use-package claude-code
+  :ensure t
+  :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
+  :bind-keymap ("C-c c" . claude-code-command-map)
+  :bind (:repeat-map my-claude-code-map ("M" . claude-code-cycle-mode))
+  :config
+  ;; IDE integration with Monet
+  (add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
+  (monet-mode 1)
+  (claude-code-mode))
+
+;; Ediff
+;; Restore previous window layout after ediff exits
+(use-package winner
+  :ensure nil
+  :config
+  (winner-mode 1)
+  (add-hook 'ediff-after-quit-hook-internal #'winner-undo))
+
+
+;;;; Terminal size fix for eat
+(add-to-list 'load-path (expand-file-name "~/.config/emacs/lisp/"))
+(use-package terminal-fix
+  :ensure nil
+  :defer nil
+  :config
+  (terminal-fix-mode 1))
+
+
+;;;; Fun
+(use-package fireplace
+  :ensure t)
+
+
+;;;; Website export functionality
+
+(use-package ox-rss
+  :ensure t)
+(require 'website-publish)
+
+
+;; Per-Frame Setup
+;; Hotfix for Daemon-Mode-Emacsclient only partially initialized
+(defun drdos/frame-setup (frame)
+  "Apply UI settings for new FRAME (GUI or TTY)."
+  (with-selected-frame frame
+    ;; Load theme idempotent
+    (load-theme 'solarized-light t)
+
+    (when (fboundp 'doom-modeline-mode)
+      (doom-modeline-mode 1))
+
+    (when (fboundp 'vertico-mode)
+      (vertico-mode 1))))
+
+;; Include every new Frame
+(add-hook 'after-make-frame-functions #'drdos/frame-setup)
+
+;; Also include the first frame (gui-start without daemon)
+(when (frame-live-p (selected-frame))
+  (drdos/frame-setup (selected-frame)))
+
+
+
+;;;; Custom-Set-Variables added by packages
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(org-agenda-files '("~/Documents/Notizen/todo/agenda.org"))
+ '(package-selected-packages nil))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+
+
+(provide 'init)
+;;; init.el ends here

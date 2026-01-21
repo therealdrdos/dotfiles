@@ -1,0 +1,37 @@
+;;; platform-config.el --- macOS-specific configuration -*- lexical-binding: t -*-
+
+;;; Font
+(add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font Mono-14"))
+(set-face-attribute 'default nil :family "JetBrainsMono Nerd Font Mono" :height 140)
+
+;;; PATH from shell
+(use-package exec-path-from-shell
+  :ensure t
+  :demand t
+  :config
+  (exec-path-from-shell-initialize))
+
+(setq mac-option-modifier 'meta)
+(setq mac-command-modifier 'super)
+(setq mac-right-option-modifier 'none)  ; free for special keys
+
+;;; Native macOS-Integration
+(setq ns-use-native-fullscreen t)
+(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+(add-to-list 'default-frame-alist '(ns-appearance . light))
+
+;;; Trackpad pixel-scrolling
+(pixel-scroll-precision-mode 1)
+
+(setq trash-directory "~/.Trash")
+
+;;; Use dired with GNU ls from coreutils
+(setq insert-directory-program "gls")
+
+;;; Thin font smoothing for retina screen
+(setq ns-use-thin-smoothing t)
+
+(setq alert-default-style 'osx-notifier)
+
+(provide 'platform-config)
+;;; platform-config.el ends here
