@@ -1,0 +1,57 @@
+# ~/.kshrc - OpenBSD ThinkPad T400
+case $- in *i*) ;; *) return ;; esac
+
+set -o noclobber
+set -o notify
+set -o emacs
+set -o braceexpand
+set -o trackall
+
+if [[ -t 0 ]]; then
+	stty stop undef 2>/dev/null
+	stty start undef 2>/dev/null
+fi
+
+[[ "$TERM" == "xterm" ]] && export TERM="xterm-256color"
+
+export COLORTERM="256"
+export GPG_TTY="$(tty 2>/dev/null)"
+
+export HISTSIZE=20000
+export CDPATH=".:~:~/src"
+
+PS1='[\u@\h:\w]\$ '
+
+alias emacs='emacs -nw'
+alias ls='lsd'
+alias ll='lsd -la'
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -i'
+alias grep='grep --color=auto'
+alias clobber='>|'
+
+alias an='ansible'
+alias anp='ansible-playbook'
+alias anv='ansible-vault'
+alias ani='ansible-inventory'
+
+alias cdd='cd ~/src/devops-infrastructure'
+alias cdg='cd ~/src'
+alias cdh='cd ~/'
+
+alias pka='doas pkg_add'
+alias pkd='doas pkg_delete'
+alias pki='pkg_info'
+alias pks='pkg_info -Q'
+alias pkl='pkg_info -L'
+alias pku='doas pkg_add -u'
+
+alias rcctl='doas rcctl'
+alias syspatch='doas syspatch'
+alias fw_update='doas fw_update'
+
+alias history='fc -l'
+alias h='fc -l -20'
+
+mkcd() { mkdir -p -- "$1" && cd -- "$1" || return; }

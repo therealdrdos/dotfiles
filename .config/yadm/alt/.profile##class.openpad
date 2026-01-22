@@ -1,0 +1,25 @@
+# ~/.profile - OpenBSD ThinkPad T400
+
+umask 077
+
+export HOME TERM
+PATH=$HOME/bin:$HOME/.local/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
+export PATH
+
+export ENV="$HOME/.kshrc"
+
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+
+export EDITOR='emacs -nw'
+export VISUAL='emacs -nw'
+export PAGER='less'
+export LESS='-FRX'
+export LESSHISTFILE='-'
+
+export LANG='en_US.UTF-8'
+export LC_CTYPE='en_US.UTF-8'
+
+[[ "$TERM" == "vt220" ]] && export TERM="wsvt25"
