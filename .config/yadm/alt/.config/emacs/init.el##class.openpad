@@ -618,7 +618,7 @@
                 solitaire-mode-hook zone-mode-hook doctor-mode-hook
                 help-mode-hook Info-mode-hook Man-mode-hook woman-mode-hook
                 calendar-mode-hook compilation-mode-hook eww-mode-hook image-mode-hook
-                eshell-mode-hook shell-mode-hook term-mode-hook))
+                eshell-mode-hook shell-mode-hook term-mode-hook doc-view-mode))
   (add-hook hook (lambda () (display-line-numbers-mode -1))))
 
 
