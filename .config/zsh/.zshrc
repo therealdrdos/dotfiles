@@ -7,6 +7,9 @@ setopt INTERACTIVE_COMMENTS
 setopt EXTENDED_GLOB
 setopt PIPE_FAIL
 setopt NOTIFY
+setopt AUTO_PUSHD
+setopt PUSHD_IGNORE_DUPS
+setopt PUSHD_SILENT
 unsetopt NO_HUP
 
 # No XON/XOFF stop keys to prevent terminal from hanging
@@ -31,11 +34,13 @@ export PAGER='less'
 export LESS='-FRX'
 export LESSHISTFILE='-'
 export LANG=en_US.UTF-8
+export LC_CTYPE=en_US.UTF-8
 export NULLCMD=cat
 export READNULLCMD=less
 
 # Make GPG pinentry more stabil in tty
 export GPG_TTY="$(tty 2>/dev/null)"
+export CDPATH=".:~:~/Documents/git"
 
 ## History
 # XDG-state for history
@@ -55,6 +60,7 @@ setopt HIST_IGNORE_SPACE
 setopt HIST_REDUCE_BLANKS
 setopt HIST_VERIFY
 setopt EXTENDED_HISTORY
+setopt HIST_FIND_NO_DUPS
 
 ## Completion
 autoload -Uz compinit
@@ -111,6 +117,7 @@ alias mv='mv -i'
 alias rm='rm -i'
 alias grep='grep --color=auto'
 alias clobber='>|'
+alias h='history -20'
 
 alias an='ansible'
 alias anp='ansible-playbook'
@@ -121,7 +128,10 @@ alias cdd='cd ~/Documents/git/devops-infrastructure'
 alias cdg='cd ~/Documents/git/'
 alias cdh='cd ~/'
 
-mkcd() { mkdir -p -- "$1" && cd -- "$1"; }
+hash -d git=~/Documents/git
+hash -d infra=~/Documents/git/devops-infrastructure
+
+mkcd() { mkdir -p -- "$1" && cd -- "$1" || return; }
 
 ## Local overrides
 [[ -f "$ZDOTDIR/local.zsh" ]] && source "$ZDOTDIR/local.zsh"
