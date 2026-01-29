@@ -22,3 +22,7 @@ if (( $+commands[port] )); then
   alias pos='port search'
   alias pou='sudo port selfupdate && sudo port upgrade outdated'
 fi
+
+alias rmt='trash -F'
+
+export SSH_AUTH_SOCK="$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh"
