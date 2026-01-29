@@ -1,6 +1,7 @@
 # Alacritty local overrides
 [window]
 option_as_alt = "OnlyLeft"
+decorations = "transparent"
 
 [font]
 size = 14.0
