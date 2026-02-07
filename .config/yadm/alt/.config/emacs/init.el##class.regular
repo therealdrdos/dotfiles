@@ -159,7 +159,9 @@
   (setq dashboard-startup-banner 'official
         dashboard-items '((recents  . 4)
                           (bookmarks . 5)))
-  (dashboard-setup-startup-hook))
+  (dashboard-setup-startup-hook)
+  (setq initial-buffer-choice
+        (lambda () (get-buffer-create dashboard-buffer-name))))
 
 
 ;;;; Org-Mode
