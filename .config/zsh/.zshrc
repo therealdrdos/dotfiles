@@ -41,6 +41,7 @@ export READNULLCMD=less
 # Make GPG pinentry more stabil in tty
 export GPG_TTY="$(tty 2>/dev/null)"
 export CDPATH=".:~:~/Documents/git"
+export NPM_CONFIG_PREFIX="$HOME/.local"
 
 ## History
 # XDG-state for history
