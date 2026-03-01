@@ -198,7 +198,9 @@
   (when (facep 'org-meta-line)
     (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch)))
   (when (facep 'org-checkbox)
-    (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)))
+    (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+  (when (facep 'org-table)
+    (set-face-attribute 'org-table nil :inherit 'fixed-pitch)))
 
 (with-eval-after-load 'org-indent
   (when (facep 'org-indent)
@@ -222,6 +224,14 @@
 
 (add-hook 'org-mode-hook 'org-indent-mode)
 (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1)))
+
+;; Org-babel: enable execution of code blocks
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((emacs-lisp . t)
+   (shell      . t)
+   (plantuml   . t)))
+(setq org-plantuml-exec-mode 'plantuml)
 
 (setq org-todo-keywords
       '((sequence
