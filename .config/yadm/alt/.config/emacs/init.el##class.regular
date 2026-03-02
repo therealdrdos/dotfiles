@@ -303,6 +303,13 @@
 
   (global-org-modern-mode))
 
+;; Pixel-level table alignment for variable-pitch-mode
+(use-package valign
+  :ensure t
+  :hook (org-mode . valign-mode)
+  :config
+  (setq valign-fancy-bar t))
+
 (use-package org-superstar
   :ensure t
   :config
