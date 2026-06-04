@@ -128,9 +128,10 @@ alias ani='ansible-inventory'
 alias cdd='cd ~/Documents/git/devops-infrastructure'
 alias cdg='cd ~/Documents/git/'
 alias cdh='cd ~/'
+alias cdti='cd ~/Documents/git/tesserac-infra'
 
 hash -d git=~/Documents/git
-hash -d infra=~/Documents/git/devops-infrastructure
+hash -d infra=~/Documents/git/tesserac-infra
 
 mkcd() { mkdir -p -- "$1" && cd -- "$1" || return; }
 
