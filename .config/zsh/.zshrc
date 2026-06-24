@@ -135,5 +135,8 @@ hash -d infra=~/Documents/git/tesserac-infra
 
 mkcd() { mkdir -p -- "$1" && cd -- "$1" || return; }
 
+## direnv
+(( $+commands[direnv] )) && eval "$(direnv hook zsh)"
+
 ## Local overrides
 [[ -f "$ZDOTDIR/local.zsh" ]] && source "$ZDOTDIR/local.zsh"
