@@ -839,6 +839,12 @@
   (drdos/frame-setup (selected-frame)))
 
 
+;; Custom Accounting el
+(add-to-list 'load-path "~/Documents/TesseracAI/emacs-accounting/lib")
+(require 'accounting)
+(load "~/Documents/TesseracAI/emacs-accounting/accounting-config.el")
+
+
 
 (provide 'init)
 ;;; init.el ends here
