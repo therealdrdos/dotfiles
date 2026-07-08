@@ -74,9 +74,6 @@
 (when (file-exists-p custom-file)
   (load custom-file 'noerror))
 
-;; Load platform-specific configuration (managed by yadm alt)
-(load (expand-file-name "platform-config" user-emacs-directory) t)
-
 (setq backup-directory-alist `(("." . ,my/backup-dir)))
 (setq auto-save-file-name-transforms `((".*" ,my/autosave-dir t)))
 (setq auto-save-default t)
@@ -111,14 +108,17 @@
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                          ("gnu" . "https://elpa.gnu.org/packages/")
                          ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
-(package-initialize)
-;; refresh if archive is empty
+;; package.el auto-activates at startup; only the archive index needs loading.
+(package-read-all-archive-contents)
 (unless package-archive-contents
   (package-refresh-contents))
 (require 'use-package)
 (setq use-package-always-ensure t)
 (setq use-package-always-defer t)
 (setq use-package-expand-minimally t)
+
+;; Platform-specific config.
+(load (expand-file-name "platform-config" user-emacs-directory) t)
 
 
 ;;;; Theming
