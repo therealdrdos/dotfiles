@@ -28,8 +28,8 @@ export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 typeset -U path manpath fpath
 
 export COLORTERM="${COLORTERM:-truecolor}"
-export EDITOR='emacs -nw'
-export VISUAL='emacs -nw'
+export EDITOR='emacsclient -t -a ""'
+export VISUAL='emacsclient -t -a ""'
 export PAGER='less'
 export LESS='-FRX'
 export LESSHISTFILE='-'
