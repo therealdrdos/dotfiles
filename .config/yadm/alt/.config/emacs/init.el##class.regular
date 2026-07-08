@@ -839,12 +839,17 @@
   (drdos/frame-setup (selected-frame)))
 
 
-;; Custom Accounting el
-(add-to-list 'load-path "~/Documents/TesseracAI/emacs-accounting/lib")
-(require 'accounting)
-(load "~/Documents/TesseracAI/emacs-accounting/accounting-config.el")
+;; Optional custom accounting lib.
+(let ((accounting-dir (expand-file-name "~/Documents/TesseracAI/emacs-accounting/")))
+  (when (file-directory-p accounting-dir)
+    (add-to-list 'load-path (expand-file-name "lib" accounting-dir))
+    (require 'accounting)
+    (load (expand-file-name "accounting-config.el" accounting-dir) 'noerror)))
 
 
+
+;; Per-machine overrides, untracked; loaded last so it wins.
+(load (expand-file-name "local.el" user-emacs-directory) 'noerror 'nomessage)
 
 (provide 'init)
 ;;; init.el ends here
