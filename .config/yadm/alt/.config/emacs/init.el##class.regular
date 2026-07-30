@@ -290,7 +290,7 @@
       org-agenda-current-time-string
       "⭠ now ─────────────────────────────────────────────────")
 
-;; Hooks, not :demand -- org-modern requires org and would pull it into startup.
+;; Hooked rather than demanded, org-modern requires org.
 (use-package org-modern
   :ensure t
   :hook ((org-mode . org-modern-mode)
@@ -481,10 +481,8 @@
   :ensure t
   :init (global-flycheck-mode)
   :config
-  ;; flycheck ships the eglot bridge itself, the flycheck-eglot package is dead weight
   (setq flycheck-eglot-exclusive nil    ; keep yamllint running next to the LSP
-        ;; ...which otherwise lints C twice, clangd plus clang
-        flycheck-disabled-checkers '(c/c++-clang c/c++-gcc c/c++-cppcheck))
+        flycheck-disabled-checkers '(c/c++-clang c/c++-gcc c/c++-cppcheck)) ; clangd covers C
   (global-flycheck-eglot-mode 1))
 
 
@@ -516,11 +514,15 @@
 
 ;;;; Ansible Development
 
+;; ansible-vault-mode's own variable does not survive its normal-mode call
+(defun my/vault-buffer-p ()
+  "Non-nil in a decrypted ansible-vault buffer."
+  (bound-and-true-p ansible-vault--auto-encryption-enabled))
+
 (use-package ansible
   :ensure t
   :hook (yaml-mode . (lambda ()
-                       ;; Don't activate ansible-mode in vault files
-                       (unless (bound-and-true-p ansible-vault-mode)
+                       (unless (my/vault-buffer-p)
                          (ansible-mode)))))
 
 ;; Inline Ansible module documentation
@@ -530,14 +532,11 @@
   :bind (:map ansible-key-map
          ("C-c C-d" . ansible-doc)))
 
-;; Transparent vault file editing
+;; Transparent vault file editing, detected by header rather than filename.
 (use-package ansible-vault
   :ensure t
+  :magic ("\\$ANSIBLE_VAULT;" . ansible-vault-mode)
   :config
-  ;; Auto-detect vault files
-  (add-to-list 'auto-mode-alist '("/vault\\.ya?ml\\'" . ansible-vault-mode))
-  (add-to-list 'auto-mode-alist '("/.*vault.*\\.ya?ml\\'" . ansible-vault-mode))
-
   ;; Override password file discovery to search directory tree
   (defun ansible-vault--guess-password-file ()
     "Find .ansible_vault_pw by walking up dirs, fallback to defaults."
@@ -577,15 +576,9 @@
     ansible-vault--password-file)
 
   (add-hook 'ansible-vault-mode-hook
-            (lambda ()
-              (setq-local require-final-newline nil)
-              (setq-local buffer-read-only nil)
-              ;; yaml-mode features without activating the mode (avoids hooks)
-              (require 'yaml-mode)
-              (setq-local font-lock-defaults '(yaml-font-lock-keywords))
-              (font-lock-mode 1))))
+            (lambda () (setq-local require-final-newline nil))))
 
-;; Jinja2 templates.  A bare regexp in :mode pairs with the package name, not the mode.
+;; Jinja2 template highlighting
 (use-package poly-ansible
   :ensure t
   :mode (("\\.j2\\'" . poly-ansible-mode)
@@ -594,8 +587,7 @@
 (use-package highlight-indentation
   :ensure t
   :hook ((yaml-mode . (lambda ()
-                        ;; skip vault files
-                        (unless (bound-and-true-p ansible-vault-mode)
+                        (unless (my/vault-buffer-p)
                           (highlight-indentation-mode)
                           (highlight-indentation-current-column-mode)))))
   :config
@@ -612,8 +604,7 @@
   ;; Ansible-specific imenu patterns
   (add-hook 'yaml-mode-hook
             (lambda ()
-              ;; Don't set imenu in vault files
-              (unless (bound-and-true-p ansible-vault-mode)
+              (unless (my/vault-buffer-p)
                 (setq imenu-generic-expression
                       '(("Tasks" "^- name: \\(.+\\)" 1)
                         ("Roles" "^  role: \\(.+\\)" 1)
@@ -712,9 +703,9 @@
   :ensure nil
   :defer t
   :hook ((c-mode c++-mode objc-mode cuda-mode) . eglot-ensure)
+  ;; eglot sends the whole buffer on didOpen -- never in vault files
   :hook (yaml-mode . (lambda ()
-                       ;; Don't start eglot in vault files
-                       (unless (bound-and-true-p ansible-vault-mode)
+                       (unless (my/vault-buffer-p)
                          (eglot-ensure))))
   :config
   (setq eglot-autoshutdown t
