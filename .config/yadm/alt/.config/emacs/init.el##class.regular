@@ -84,8 +84,6 @@
 
 (setq backup-directory-alist `(("." . ,my/backup-dir)))
 (setq auto-save-file-name-transforms `((".*" ,my/autosave-dir t)))
-(setq auto-save-default t)
-(setq create-lockfiles t)
 (setq delete-old-versions t
       kept-new-versions 8
       kept-old-versions 1
@@ -127,11 +125,10 @@
 
 (add-hook 'dired-mode-hook #'dired-hide-details-mode)
 
-;;; Keybinding to open init.el quickly
-(defun init ()
-  "Quickly open the init.el config file."
+(defun my/edit-init ()
+  "Open the init file."
   (interactive)
-  (find-file "~/.config/emacs/init.el"))
+  (find-file (expand-file-name "init.el" user-emacs-directory)))
 
 
 ;;;; Package Management
@@ -977,7 +974,7 @@ FORCE is non-nil with a prefix argument and skips the check."
 
 
 ;;;; Terminal size fix for eat
-(add-to-list 'load-path (expand-file-name "~/.config/emacs/lisp/"))
+(add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 (use-package terminal-fix
   :ensure nil
   :defer nil
