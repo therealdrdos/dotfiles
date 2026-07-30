@@ -550,6 +550,12 @@
   :ensure nil
   :demand t
   :init
+  (setq savehist-additional-variables
+        '((kill-ring . 30) search-ring regexp-search-ring claude-code-command-history)
+        ;; these carry vault passwords, tokens and registry logins
+        savehist-ignored-variables
+        '(shell-command-history dired-shell-command-history
+          magit-git-command-history read-from-kill-ring-history))
   (savehist-mode))
 
 
@@ -923,12 +929,15 @@ FORCE is non-nil with a prefix argument and skips the check."
 (use-package inheritenv
   :vc (:url "https://github.com/purcell/inheritenv" :rev :newest))
 
-;; eat terminal backend
+;; eat's shell integration only runs when TERM starts with eat-
 (use-package eat
   :ensure t
   :config
   (setq eat-kill-buffer-on-exit t)
-  (setq eat-term-name "xterm-direct"))
+  (add-hook 'eat-mode-hook
+            (lambda ()
+              (setq-local process-environment
+                          (cons "COLORTERM=truecolor" process-environment)))))
 
 ;; monet package for mcp
 (use-package monet
@@ -946,10 +955,15 @@ FORCE is non-nil with a prefix argument and skips the check."
   :bind (:repeat-map my-claude-code-map ("M" . claude-code-cycle-mode))
   :config
   (setq claude-code-program-switches '("--dangerously-skip-permissions"))
+  (setq claude-code-notification-function #'my/claude-notify)
   ;; IDE integration with Monet
   (add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
   (monet-mode 1)
   (claude-code-mode))
+
+(defun my/claude-notify (title message)
+  "Show MESSAGE from claude-code as a desktop notification titled TITLE."
+  (alert message :title title :category 'claude-code))
 
 ;; Restore previous window layout after ediff exits
 (winner-mode 1)

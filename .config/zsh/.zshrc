@@ -135,6 +135,9 @@ hash -d infra=~/Documents/git/tesserac-infra
 
 mkcd() { mkdir -p -- "$1" && cd -- "$1" || return; }
 
+## eat: prompt jumps, exit-status marks, directory tracking
+[[ -n "$EAT_SHELL_INTEGRATION_DIR" ]] && . "$EAT_SHELL_INTEGRATION_DIR/zsh"
+
 ## org-capture into the running daemon
 oc()  { emacsclient -e "(org-capture-string \"$*\" \"i\")" >/dev/null; }
 ocf() { emacsclient -c --frame-parameters='(quote (name . "capture"))' -n -e '(org-capture nil "t")'; }
