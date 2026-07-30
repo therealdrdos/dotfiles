@@ -39,7 +39,6 @@
 (when (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 (blink-cursor-mode -1)
 (global-hl-line-mode 1)
-(global-display-line-numbers-mode 1)
 (recentf-mode 1)
 (save-place-mode 1)
 (global-auto-revert-mode 1)
@@ -76,9 +75,9 @@
       version-control t)
 
 (setq initial-scratch-message nil)
-(setq visible-bell t)
+(setq ring-bell-function #'ignore)
 (setq global-auto-revert-non-file-buffers t)
-(global-set-key [escape] 'keyboard-escape-quit)
+(keymap-set minibuffer-local-map "<escape>" #'minibuffer-keyboard-quit)
 (setq history-length 100)
 (setq recentf-max-saved-items 100)
 (setq delete-by-moving-to-trash t)
@@ -86,10 +85,10 @@
 (setq-default tab-width 4)
 (setq require-final-newline t)
 
-(defun init ()
-  "Quickly open the init.el config file."
+(defun my/edit-init ()
+  "Open the init file."
   (interactive)
-  (find-file "~/.config/emacs/init.el"))
+  (find-file (expand-file-name "init.el" user-emacs-directory)))
 
 
 ;;;; Package Management
@@ -98,13 +97,14 @@
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                          ("gnu" . "https://elpa.gnu.org/packages/")
                          ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
-(package-initialize)
+;; package.el auto-activates at startup; only the archive index needs loading.
+(package-read-all-archive-contents)
 (unless package-archive-contents
   (package-refresh-contents))
 (require 'use-package)
 (setq use-package-always-ensure t)
 (setq use-package-always-defer t)
-(setq use-package-expand-minimally t)
+;; :after is not a load trigger -- blocks need :hook/:bind/:mode or :demand t.
 
 
 ;;;; Theming
@@ -114,7 +114,7 @@
   :demand t
   :init
   (setq solarized-use-variable-pitch t)
-  (setq solarized-scale-org-headlines t)
+  (setq solarized-scale-org-headlines nil)   ; org-level-* sizes come from the user theme
   (setq solarized-high-contrast-mode-line t)
   (setq solarized-highlight-numbers t)
   :config
@@ -125,7 +125,9 @@
 (setq-default line-spacing 0.15)
 (setq-default fill-column 80)
 
-(global-display-fill-column-indicator-mode t)
+(dolist (hook '(prog-mode-hook yaml-mode-hook conf-mode-hook))
+  (add-hook hook #'display-line-numbers-mode)
+  (add-hook hook #'display-fill-column-indicator-mode))
 
 (use-package nerd-icons
   :ensure t
@@ -149,15 +151,29 @@
 ;;;; Org-Mode
 (require 'org)
 
-(with-eval-after-load 'org-faces
-  (set-face-attribute 'org-document-title nil
-                      :font my/mono-font
-                      :weight 'bold
-                      :height 1.8))
+;; Face tweaks live in the `user' theme so they survive load-theme.
+(custom-theme-set-faces 'user
+ `(org-document-title  ((t (:font ,my/mono-font :weight bold :height 1.8))))
+ `(org-level-1         ((t (:font ,my/mono-font :weight bold :height 1.35))))
+ `(org-level-2         ((t (:font ,my/mono-font :weight bold :height 1.3))))
+ `(org-level-3         ((t (:font ,my/mono-font :weight bold :height 1.2))))
+ `(org-level-4         ((t (:font ,my/mono-font :weight bold :height 1.1))))
+ `(org-level-5         ((t (:font ,my/mono-font :weight bold :height 1.1))))
+ `(org-level-6         ((t (:font ,my/mono-font :weight bold :height 1.1))))
+ `(org-level-7         ((t (:font ,my/mono-font :weight bold :height 1.1))))
+ `(org-level-8         ((t (:font ,my/mono-font :weight bold :height 1.1))))
+ '(org-block           ((t (:inherit fixed-pitch :height 0.85))))
+ '(org-code            ((t (:inherit (shadow fixed-pitch) :height 0.85))))
+ '(org-verbatim        ((t (:inherit (shadow fixed-pitch) :height 0.85))))
+ '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+ '(org-meta-line       ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+ '(org-checkbox        ((t (:inherit fixed-pitch))))
+ '(org-table           ((t (:inherit fixed-pitch))))
+ '(org-indent          ((t (:inherit (org-hide fixed-pitch) :height 0.85)))))
 
 (global-set-key (kbd "C-c l") #'org-store-link)
 (global-set-key (kbd "C-c a") #'org-agenda)
-(global-set-key (kbd "C-c c") #'org-capture)
+(global-set-key (kbd "C-c n") #'org-capture)
 
 (setq org-log-done 'time)
 
@@ -166,28 +182,12 @@
   :commands toc-org-enable
   :init (add-hook 'org-mode-hook 'toc-org-enable))
 
-(with-eval-after-load 'org-faces
-  (when (facep 'org-block)
-    (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch :height 0.85))
-  (when (facep 'org-code)
-    (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch) :height 0.85))
-  (when (facep 'org-verbatim)
-    (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch) :height 0.85))
-  (when (facep 'org-special-keyword)
-    (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch)))
-  (when (facep 'org-meta-line)
-    (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch)))
-  (when (facep 'org-checkbox)
-    (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)))
 
-(with-eval-after-load 'org-indent
-  (when (facep 'org-indent)
-    (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch) :height 0.85)))
 (add-hook 'org-mode-hook 'variable-pitch-mode)
 
 (plist-put org-format-latex-options :scale 2)
 
-(setq org-adapt-indentation t
+(setq org-adapt-indentation nil   ; org-indent-mode indents visually already
       org-hide-leading-stars t
       org-hide-emphasis-markers t
       org-pretty-entities t
@@ -210,7 +210,7 @@
         (sequence
          "TODO(t)" "URGENT(u)" "ONGOING(o)" "WAITING(w)"
          "|"
-         "DONE(d)" "ABORT(a)")))
+         "ABORT(a)")))
 
 (use-package hl-todo
   :ensure t
@@ -277,17 +277,6 @@
                                           ("HOLD" . 9744)
                                           ("ABORT" . 9744)
                                           ("POSTPONED" . 9744))))
-
-(with-eval-after-load 'org-faces
-  (dolist (face '((org-level-1 . 1.35)
-                  (org-level-2 . 1.3)
-                  (org-level-3 . 1.2)
-                  (org-level-4 . 1.1)
-                  (org-level-5 . 1.1)
-                  (org-level-6 . 1.1)
-                  (org-level-7 . 1.1)
-                  (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font my/mono-font :weight 'bold :height (cdr face))))
 
 (defun my/org-fold-completed-tasks ()
   "Fold all DONE tasks in buffer."
@@ -413,29 +402,34 @@
         which-key-allow-imprecise-window-fit t
         which-key-separator " → "))
 
-(use-package winner
-  :ensure nil
-  :config
-  (winner-mode 1)
-  (add-hook 'ediff-after-quit-hook-internal #'winner-undo))
+;; Restore previous window layout after ediff exits
+(winner-mode 1)
+(add-hook 'ediff-after-quit-hook-internal #'winner-undo)
 
 
 ;;;; Flycheck
 
 (use-package flycheck
   :ensure t
-  :init (global-flycheck-mode))
+  :init (global-flycheck-mode)
+  :config
+  (setq flycheck-eglot-exclusive nil    ; keep yamllint running next to clangd
+        flycheck-disabled-checkers '(c/c++-clang c/c++-gcc c/c++-cppcheck))
+  (global-flycheck-eglot-mode 1))
 
 
 ;;;; Language Support
 
-(setq major-mode-remap-alist
-      '((c-mode          . c-ts-mode)
-        (c++-mode        . c++-ts-mode)
-        (python-mode     . python-ts-mode)
-        (css-mode        . css-ts-mode)
-        (json-mode       . json-ts-mode)
-        (sh-mode         . bash-ts-mode)))
+;; A ts-mode without its grammar has neither font-lock nor indentation.
+;; treesit-language-available-p is absent in builds without tree-sitter.
+(when (treesit-available-p)
+  (dolist (e '((c      c-mode       . c-ts-mode)
+               (cpp    c++-mode     . c++-ts-mode)
+               (python python-mode  . python-ts-mode)
+               (css    css-mode     . css-ts-mode)
+               (json   js-json-mode . json-ts-mode)))
+    (when (treesit-language-available-p (car e))
+      (add-to-list 'major-mode-remap-alist (cdr e)))))
 
 (use-package markdown-mode
   :ensure t
@@ -456,10 +450,15 @@
 
 ;;;; Ansible Development
 
+;; ansible-vault-mode's own variable does not survive its normal-mode call
+(defun my/vault-buffer-p ()
+  "Non-nil in a decrypted ansible-vault buffer."
+  (bound-and-true-p ansible-vault--auto-encryption-enabled))
+
 (use-package ansible
   :ensure t
   :hook (yaml-mode . (lambda ()
-                       (unless (bound-and-true-p ansible-vault-mode)
+                       (unless (my/vault-buffer-p)
                          (ansible-mode)))))
 
 (use-package ansible-doc
@@ -470,61 +469,32 @@
 
 (use-package ansible-vault
   :ensure t
+  :magic ("\\$ANSIBLE_VAULT;" . ansible-vault-mode)
   :config
-  (add-to-list 'auto-mode-alist '("/vault\\.ya?ml\\'" . ansible-vault-mode))
-  (add-to-list 'auto-mode-alist '("/.*vault.*\\.ya?ml\\'" . ansible-vault-mode))
+  ;; upstream only knows the env var, ansible.cfg and the global default
+  (defun my/vault-password-file (&rest _)
+    "Point `ansible-vault--password-file' at the nearest .ansible_vault_pw."
+    (unless ansible-vault--password-file
+      (when-let* ((file (buffer-file-name))
+                  (dir (locate-dominating-file file ".ansible_vault_pw")))
+        (setq-local ansible-vault--password-file
+                    (expand-file-name ".ansible_vault_pw" dir)))))
 
-  (defun ansible-vault--guess-password-file ()
-    "Find .ansible_vault_pw by walking up dirs, fallback to defaults."
-    (interactive)
-    (when (not ansible-vault--password-file)
-      (when-let* ((buffer-file (buffer-file-name))
-                  (password-dir (locate-dominating-file buffer-file ".ansible_vault_pw"))
-                  (password-file (expand-file-name ".ansible_vault_pw" password-dir)))
-        (setq-local ansible-vault--password-file password-file))
-
-      (when (not ansible-vault--password-file)
-        (let* ((env-val (or (getenv "ANSIBLE_VAULT_PASSWORD_FILE") ""))
-               (vault-id-pair (assoc ansible-vault--header-vault-id ansible-vault-vault-id-alist))
-               (ansible-config-path (ansible-vault--process-config-files)))
-          (cond
-           (vault-id-pair
-            (setq-local ansible-vault--vault-id (car vault-id-pair))
-            (setq-local ansible-vault--password-file (cdr vault-id-pair)))
-           (ansible-vault--header-vault-id
-            (ansible-vault--request-vault-id ansible-vault--header-vault-id))
-           (t (let ((password-file
-                     (or (and (not (string-empty-p env-val)) env-val)
-                         ansible-config-path
-                         ansible-vault-password-file)))
-                (setq-local ansible-vault--password-file password-file)))))))
-
-    (when (not (and ansible-vault--password-file
-                    (file-readable-p ansible-vault--password-file)))
-      (let ((vault-id (or ansible-vault--header-vault-id ansible-vault--vault-id)))
-        (if vault-id
-            (ansible-vault--request-vault-id vault-id)
-          (call-interactively 'ansible-vault--request-password))))
-
-    ansible-vault--password-file)
+  (advice-add 'ansible-vault--guess-password-file :before #'my/vault-password-file)
 
   (add-hook 'ansible-vault-mode-hook
-            (lambda ()
-              (setq-local require-final-newline nil)
-              (setq-local buffer-read-only nil)
-              (require 'yaml-mode)
-              (setq-local font-lock-defaults '(yaml-font-lock-keywords))
-              (font-lock-mode 1))))
+            (lambda () (setq-local require-final-newline nil))))
 
+;; Jinja2 template highlighting
 (use-package poly-ansible
   :ensure t
-  :after ansible
-  :mode ("\\.j2\\'" "\\.jinja2\\'"))
+  :mode (("\\.j2\\'" . poly-ansible-mode)
+         ("\\.jinja2\\'" . poly-ansible-mode)))
 
 (use-package highlight-indentation
   :ensure t
   :hook ((yaml-mode . (lambda ()
-                        (unless (bound-and-true-p ansible-vault-mode)
+                        (unless (my/vault-buffer-p)
                           (highlight-indentation-mode)
                           (highlight-indentation-current-column-mode)))))
   :config
@@ -539,46 +509,31 @@
 
   (add-hook 'yaml-mode-hook
             (lambda ()
-              (unless (bound-and-true-p ansible-vault-mode)
+              (unless (my/vault-buffer-p)
                 (setq imenu-generic-expression
                       '(("Tasks" "^- name: \\(.+\\)" 1)
                         ("Roles" "^  role: \\(.+\\)" 1)
                         ("Vars" "^\\([a-z_]+\\):" 1)))))))
 
+(defun my/ansible-root ()
+  "Return the directory holding ansible.cfg above this file, if any."
+  (and buffer-file-name (locate-dominating-file buffer-file-name "ansible.cfg")))
+
+;; No language server here, so ansible-lint runs as a checker.
+;; flycheck-define-checker does not register it, hence the add-to-list.
 (with-eval-after-load 'flycheck
-  (flycheck-define-checker yaml-yamllint
-    "YAML syntax checker using yamllint."
-    :command ("yamllint" "-f" "parsable" source)
-    :error-patterns
-    ((error line-start
-            (file-name) ":" line ":" column ": [error] "
-            (message) line-end)
-     (warning line-start
-              (file-name) ":" line ":" column ": [warning] "
-              (message) line-end))
-    :modes yaml-mode)
-
   (flycheck-define-checker ansible-lint
-    "Ansible playbook linter."
-    :command ("ansible-lint"
-              "--parseable-severity"
-              "--nocolor"
-              "-f" "pep8"
-              source-inplace)
+    "Ansible linter.  See URL `https://ansible.readthedocs.io/projects/lint/'."
+    :command ("ansible-lint" "--nocolor" "--offline" "-f" "pep8" source-original)
     :error-patterns
     ((error line-start
-            (file-name) ":" line ":"
-            (optional column ":")
-            " " (message) line-end))
-    :modes yaml-mode
-    :predicate (lambda ()
-                 (and (buffer-file-name)
-                      (or (string-match-p "playbook" (buffer-file-name))
-                          (string-match-p "roles/" (buffer-file-name))
-                          (string-match-p "tasks/" (buffer-file-name))
-                          (string-match-p "handlers/" (buffer-file-name))
-                          (string-match-p "vars/" (buffer-file-name))))))
-
+            (file-name (one-or-more (not (any ": ")))  "." (or "yml" "yaml")) ":"
+            line (optional ":" column) ": " (id (one-or-more (not (any ": ")))) ": "
+            (message) line-end))
+    :modes (yaml-mode yaml-ts-mode)
+    :predicate (lambda () (and (flycheck-buffer-saved-p) (my/ansible-root)))
+    :working-directory (lambda (_) (my/ansible-root)))
+  (add-to-list 'flycheck-checkers 'ansible-lint t)
   (flycheck-add-next-checker 'yaml-yamllint 'ansible-lint))
 
 
@@ -596,12 +551,6 @@
   (setq eglot-autoshutdown t
         eglot-events-buffer-config '(:size 0)))
 
-(use-package flycheck-eglot
-  :ensure t
-  :after (flycheck eglot)
-  :config
-  (global-flycheck-eglot-mode 1))
-
 (use-package yasnippet
   :ensure t
   :init (yas-global-mode))
@@ -610,16 +559,8 @@
 ;;;; Fun
 
 (use-package fireplace
-  :ensure t
-  :hook (fireplace-mode . (lambda () (display-line-numbers-mode -1))))
+  :ensure t)
 
-(dolist (hook '(tetris-mode-hook snake-mode-hook pong-mode-hook dunnet-mode-hook
-                bubbles-mode-hook gomoku-mode-hook hanoi-mode-hook life-mode-hook
-                solitaire-mode-hook zone-mode-hook doctor-mode-hook
-                help-mode-hook Info-mode-hook Man-mode-hook woman-mode-hook
-                calendar-mode-hook compilation-mode-hook eww-mode-hook image-mode-hook
-                eshell-mode-hook shell-mode-hook term-mode-hook doc-view-mode))
-  (add-hook hook (lambda () (display-line-numbers-mode -1))))
 
 
 ;;;; Website export
