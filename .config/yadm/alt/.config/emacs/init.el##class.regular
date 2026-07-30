@@ -117,6 +117,30 @@
 (setq use-package-always-defer t)
 ;; :after is not a load trigger -- blocks need :hook/:bind/:mode or :demand t.
 
+;; package.el only records what it installs itself.  Applied at the end
+;; because load-theme reloads custom-file and would drop it if set earlier.
+(defvar my/ensured-packages nil)
+
+(defun my/note-package (sym)
+  "Add SYM to the list of packages this config wants installed."
+  (when (and sym (not (memq sym my/ensured-packages)))
+    (push sym my/ensured-packages)))
+
+(defun my/note-selected (name args &rest _)
+  "Note NAME as wanted when use-package ensures it.  ARGS is its :ensure value."
+  (dolist (a args)
+    (when a
+      (my/note-package (cond ((eq a t) (use-package-as-symbol name))
+                             ((consp a) (car a))
+                             (t a))))))
+
+(defun my/apply-selected-packages ()
+  "Fold the packages init.el asked for into `package-selected-packages'."
+  (setq package-selected-packages
+        (delete-dups (append my/ensured-packages package-selected-packages))))
+
+(advice-add 'use-package-ensure-elpa :before #'my/note-selected)
+
 ;; Platform-specific config.
 (load (expand-file-name "platform-config" user-emacs-directory) t)
 
@@ -775,6 +799,8 @@
 
 ;; Per-machine overrides, untracked; loaded last so it wins.
 (load (expand-file-name "local.el" user-emacs-directory) 'noerror 'nomessage)
+
+(my/apply-selected-packages)
 
 (provide 'init)
 ;;; init.el ends here
