@@ -440,7 +440,12 @@
   :ensure t)
 
 (use-package magit
-  :ensure t)
+  :ensure t
+  :config
+  (magit-add-section-hook 'magit-status-sections-hook
+                          'magit-insert-modules
+                          'magit-insert-unpushed-to-upstream-or-recent
+                          'append))
 
 (use-package alert
   :ensure t)
