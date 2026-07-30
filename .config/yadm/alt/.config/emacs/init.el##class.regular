@@ -500,6 +500,51 @@
   :hook
   (dired-mode . nerd-icons-dired-mode))
 
+;; marginalia resets its affixations on toggle, so hook it as well
+(use-package nerd-icons-completion
+  :ensure t
+  :after marginalia
+  :demand t
+  :config
+  (nerd-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+
+(use-package avy
+  :ensure t
+  :bind (("M-g c" . avy-goto-char-timer)
+         ("M-g l" . avy-goto-line)
+         ("M-g w" . avy-goto-word-1))
+  :config
+  (defun my/avy-embark (pt)
+    "Run `embark-act' at PT, then return to the window we came from."
+    (unwind-protect
+        (save-excursion (goto-char pt) (embark-act))
+      (select-window (cdr (ring-ref avy-ring 0))))
+    t)
+  (setf (alist-get ?. avy-dispatch-alist) #'my/avy-embark))
+
+(use-package vundo
+  :ensure t
+  :bind ("C-x U" . vundo)
+  :config
+  (setq vundo-glyph-alist vundo-unicode-symbols
+        vundo-roll-back-on-quit nil))
+
+(use-package pulsar
+  :ensure t
+  :demand t
+  :config
+  (setq pulsar-pulse-on-window-change t
+        pulsar-face 'pulsar-cyan
+        pulsar-iterations 8)
+  (dolist (f '(consult-line consult-buffer))
+    (add-to-list 'pulsar-pulse-functions f))
+  (pulsar-global-mode 1))
+
+(use-package envrc
+  :ensure t
+  :hook (after-init . envrc-global-mode))
+
 ;; Persist history over Emacs restarts
 (use-package savehist
   :ensure nil
@@ -744,16 +789,17 @@ FORCE is non-nil with a prefix argument and skips the check."
   :mode (("\\.j2\\'" . poly-ansible-mode)
          ("\\.jinja2\\'" . poly-ansible-mode)))
 
-(use-package highlight-indentation
+(use-package indent-bars
   :ensure t
-  :hook ((yaml-mode . (lambda ()
-                        (unless (my/vault-buffer-p)
-                          (highlight-indentation-mode)
-                          (highlight-indentation-current-column-mode)))))
-  :config
-  ;; Solarized Light compatible colors
-  (set-face-background 'highlight-indentation-face "#FDF6E3")
-  (set-face-background 'highlight-indentation-current-column-face "#EEE8D5"))
+  :hook (yaml-mode . my/indent-bars-unless-vault)
+  :custom
+  (indent-bars-prefer-character t)   ; stipples are partial on NS, absent on a tty
+  (indent-bars-width-frac 0.2))
+
+(defun my/indent-bars-unless-vault ()
+  "Turn on `indent-bars-mode' outside decrypted vault buffers."
+  (unless (my/vault-buffer-p)
+    (indent-bars-mode 1)))
 
 ;; Task names rather than yaml-imenu's structural [0].tasks[0] paths.
 ;; Appended so it runs after yaml-imenu-activate, which sets
