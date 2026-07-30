@@ -51,7 +51,6 @@
 (when (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 (blink-cursor-mode -1)
 (global-hl-line-mode 1)
-(global-display-line-numbers-mode 1)
 (recentf-mode 1)
 (save-place-mode 1)  ; remember edit position in files
 (global-auto-revert-mode 1)  ; watch for file changes and refresh on-change
@@ -60,6 +59,15 @@
 (prefer-coding-system 'utf-8-unix)
 (setopt use-short-answers t)
 (show-paren-mode 1)
+
+;; the daemon inherits launchd's umask 022, not the login shell's 077
+(set-default-file-modes #o700)
+
+;; kills reach the system clipboard through OSC 52 in a terminal frame
+(setq xterm-extra-capabilities '(setSelection))
+
+;; own lisp is trusted, everything opened from elsewhere is not
+(setq trusted-content '("~/.config/emacs/" "~/.config/yadm/alt/"))
 
 ;; filesystem stuff
 (defconst my/cache-dir (expand-file-name "emacs-cache/" user-emacs-directory))
@@ -189,7 +197,9 @@
 (setq-default line-spacing 0.15)
 (setq-default fill-column 80)
 
-(global-display-fill-column-indicator-mode t) ; visual line after 80 chars
+(dolist (hook '(prog-mode-hook yaml-mode-hook conf-mode-hook))
+  (add-hook hook #'display-line-numbers-mode)
+  (add-hook hook #'display-fill-column-indicator-mode))
 
 ;; Nerd Font (platform-specific font size loaded from platform-config.el)
 (use-package nerd-icons
@@ -981,16 +991,7 @@ FORCE is non-nil with a prefix argument and skips the check."
 
 ;;;; Fun
 (use-package fireplace
-  :ensure t
-  :hook (fireplace-mode . (lambda () (display-line-numbers-mode -1))))
-
-(dolist (hook '(tetris-mode-hook snake-mode-hook pong-mode-hook dunnet-mode-hook
-                bubbles-mode-hook gomoku-mode-hook hanoi-mode-hook life-mode-hook
-                solitaire-mode-hook zone-mode-hook doctor-mode-hook
-                help-mode-hook Info-mode-hook Man-mode-hook woman-mode-hook
-                calendar-mode-hook compilation-mode-hook eww-mode-hook image-mode-hook
-                eshell-mode-hook shell-mode-hook term-mode-hook doc-view-mode))
-  (add-hook hook (lambda () (display-line-numbers-mode -1))))
+  :ensure t)
 
 
 ;;;; Website export functionality
@@ -1006,7 +1007,10 @@ FORCE is non-nil with a prefix argument and skips the check."
   "Apply UI settings for new FRAME (GUI or TTY)."
   (with-selected-frame frame
     (when (fboundp 'doom-modeline-mode)
-      (doom-modeline-mode 1))))
+      (doom-modeline-mode 1))
+    ;; costs a text line on a tty, nothing in the macOS system bar
+    (unless (display-graphic-p frame)
+      (set-frame-parameter frame 'menu-bar-lines 0))))
 
 ;; Include every new Frame
 (add-hook 'after-make-frame-functions #'drdos/frame-setup)
