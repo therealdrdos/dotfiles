@@ -87,7 +87,11 @@
 (setq ring-bell-function #'ignore)
 (setq global-auto-revert-non-file-buffers t) ; refresh dired and co on changes automatically
 (keymap-set minibuffer-local-map "<escape>" #'minibuffer-keyboard-quit)
-(setq history-length 100)
+(setq history-length 1000)
+(setq history-delete-duplicates t)
+(setq enable-recursive-minibuffers t)
+(setq read-extended-command-predicate #'command-completion-default-include-p)
+(minibuffer-depth-indicate-mode 1)
 (setq recentf-max-saved-items 100)
 (setq delete-by-moving-to-trash t)
 (setq-default indent-tabs-mode nil)
@@ -434,7 +438,20 @@
   :bind (("C-s" . consult-line)
          ("C-x b" . consult-buffer)
          ("C-x C-r" . consult-recent-file)
-         ("M-y" . consult-yank-pop)))
+         ("M-y" . consult-yank-pop)
+         ("M-s r" . consult-ripgrep)      ; grep-mode output, so embark-export gives wgrep
+         ("M-s g" . consult-grep)
+         ("M-s L" . consult-line-multi)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         ("M-g o" . consult-outline)
+         ("M-g m" . consult-mark)
+         ("C-c j" . consult-org-heading)
+         ("C-c o" . consult-org-agenda))
+  :config
+  ;; opening a file on every arrow key is too eager for recent-file
+  (consult-customize consult-recent-file consult-buffer :preview-key "M-.")
+  (setq recentf-exclude '("\\.gpg\\'" "/vault")))
 
 (use-package embark
   :ensure t
@@ -450,10 +467,11 @@
   :after (embark consult))
 
 ;; Connect embark and wgrep
-(add-hook 'embark-consult-after-export-hook
-          (lambda ()
-            (when (derived-mode-p 'grep-mode)
-              (wgrep-change-to-wgrep-mode))))
+(with-eval-after-load 'embark
+  (add-hook 'embark-after-export-hook
+            (lambda ()
+              (when (derived-mode-p 'grep-mode)
+                (wgrep-change-to-wgrep-mode)))))
 
 (use-package nerd-icons-dired
   :ensure t
@@ -704,20 +722,19 @@ FORCE is non-nil with a prefix argument and skips the check."
   (set-face-background 'highlight-indentation-face "#FDF6E3")
   (set-face-background 'highlight-indentation-current-column-face "#EEE8D5"))
 
-(use-package yaml-imenu
-  :ensure t
-  :after yaml-mode
-  :config
-  (yaml-imenu-enable)
+;; Task names rather than yaml-imenu's structural [0].tasks[0] paths.
+;; Appended so it runs after yaml-imenu-activate, which sets
+;; imenu-create-index-function and would otherwise win.
+(defun my/yaml-imenu ()
+  "Index Ansible tasks, blocks and vars by name."
+  (unless (my/vault-buffer-p)
+    (setq-local imenu-generic-expression
+                '(("task"  "^ *- *name: *\\(.+?\\) *$" 1)
+                  ("block" "^  \\([a-z_]+\\): *$" 1)
+                  ("var"   "^\\([a-zA-Z_][a-zA-Z0-9_]*\\):" 1))
+                imenu-create-index-function #'imenu-default-create-index-function)))
 
-  ;; Ansible-specific imenu patterns
-  (add-hook 'yaml-mode-hook
-            (lambda ()
-              (unless (my/vault-buffer-p)
-                (setq imenu-generic-expression
-                      '(("Tasks" "^- name: \\(.+\\)" 1)
-                        ("Roles" "^  role: \\(.+\\)" 1)
-                        ("Vars" "^\\([a-z_]+\\):" 1)))))))
+(add-hook 'yaml-mode-hook #'my/yaml-imenu t)
 
 
 (use-package dockerfile-mode
