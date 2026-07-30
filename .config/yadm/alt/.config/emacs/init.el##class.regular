@@ -87,7 +87,15 @@
 (setq delete-old-versions t
       kept-new-versions 8
       kept-old-versions 1
-      version-control t)
+      version-control t
+      vc-make-backup-files t)   ; git-tracked files get no backups otherwise
+
+;; buffer-backed-up is sticky: one backup per buffer per session
+(defun my/rearm-backup ()
+  "Allow another backup of this buffer on the next save."
+  (setq buffer-backed-up nil))
+
+(add-hook 'before-save-hook #'my/rearm-backup)
 
 (setq initial-scratch-message nil)
 (setq ring-bell-function #'ignore)
@@ -124,6 +132,19 @@
       dired-recursive-deletes 'top)
 
 (add-hook 'dired-mode-hook #'dired-hide-details-mode)
+
+;; A whitelist on purpose: claude-code and eat place themselves, and
+;; *grep* stays full size for wgrep.  C-x w s toggles the strip away.
+(setq display-buffer-alist
+      '(((or (major-mode . help-mode)
+             (major-mode . compilation-mode)
+             "\\*\\(Flycheck errors\\|Warnings\\|Backtrace\\|Occur\\|Messages\\)\\*")
+         (display-buffer-in-side-window)
+         (side . bottom)
+         (slot . 0)
+         (window-height . 0.3))))
+
+(setopt register-use-preview t)
 
 (defun my/edit-init ()
   "Open the init file."
@@ -164,12 +185,17 @@
                              ((consp a) (car a))
                              (t a))))))
 
+(defun my/note-vc-selected (spec &rest _)
+  "Note a :vc package.  SPEC is the :vc value use-package passes along."
+  (my/note-package (if (consp spec) (car spec) spec)))
+
 (defun my/apply-selected-packages ()
   "Fold the packages init.el asked for into `package-selected-packages'."
   (setq package-selected-packages
         (delete-dups (append my/ensured-packages package-selected-packages))))
 
 (advice-add 'use-package-ensure-elpa :before #'my/note-selected)
+(advice-add 'use-package-vc-install :before #'my/note-vc-selected)
 
 ;; Platform-specific config.
 (load (expand-file-name "platform-config" user-emacs-directory) t)
@@ -393,6 +419,15 @@
         org-modern-star nil
         org-modern-table nil))   ; valign handles alignment
 
+(use-package org-appear
+  :ensure t
+  :hook (org-mode . org-appear-mode))
+
+;; org-indent-mode suppresses org-modern's block markers
+(use-package org-modern-indent
+  :vc (:url "https://github.com/jdtsmith/org-modern-indent" :rev :newest)
+  :hook (org-mode . org-modern-indent-mode))
+
 ;; Pixel-level table alignment for variable-pitch-mode
 (use-package valign
   :ensure t
@@ -588,7 +623,9 @@
   (setq magit-wip-merge-branch t)             ; keeps wip refs out of the gc
   (magit-wip-mode 1)
   :config
-  (setq magit-diff-refine-hunk 'all           ; word-level diffs inside a hunk
+  (setq magit-repository-directories '(("~/Documents/git" . 2)
+                                       ("~/.local/share/yadm/repo.git" . 0))
+        magit-diff-refine-hunk 'all           ; word-level diffs inside a hunk
         magit-revision-insert-related-refs 'mixed
         magit-status-goto-file-position t
         git-commit-summary-max-length 80      ; matches commitlint
