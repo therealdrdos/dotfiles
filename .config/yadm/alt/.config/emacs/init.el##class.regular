@@ -460,6 +460,26 @@
   (add-hook 'magit-pre-refresh-hook  #'diff-hl-magit-pre-refresh)
   (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh))
 
+(keymap-set ctl-x-x-map "@" #'tramp-revert-buffer-with-sudo)
+
+(with-eval-after-load 'tramp
+  (setq remote-file-name-inhibit-locks t
+        tramp-verbose 2
+        tramp-show-ad-hoc-proxies t     ; keeps multi-hop paths readable in recentf
+        tramp-ssh-controlmaster-options
+        (concat "-o ControlPath=/tmp/ssh-tramp-%%r@%%h:%%p "
+                "-o ControlMaster=auto -o ControlPersist=600"))
+
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  (add-to-list 'tramp-completion-multi-hop-methods "ssh")
+
+  ;; reuse the open connection; tramp falls back on its own for multi-hop
+  (connection-local-set-profile-variables
+   'my/tramp-direct-async '((tramp-direct-async-process . t)))
+  (dolist (m '("ssh" "scp"))
+    (connection-local-set-profiles `(:application tramp :protocol ,m)
+                                   'my/tramp-direct-async)))
+
 (use-package which-key
   :ensure t
   :demand t

@@ -10,6 +10,9 @@
 
 (setq browse-url-browser-function 'browse-url-xdg-open)
 
+;;; Root access
+(setq tramp-file-name-with-method "doas")
+
 ;;; flycheck-checkbashisms
 (use-package flycheck-checkbashisms
   :after flycheck
