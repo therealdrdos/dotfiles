@@ -213,9 +213,41 @@
 
 (global-set-key (kbd "C-c l") #'org-store-link)
 (global-set-key (kbd "C-c a") #'org-agenda)
-(global-set-key (kbd "C-c c") #'org-capture)
+(global-set-key (kbd "C-c n") #'org-capture)   ; C-c c belongs to claude-code
 
 (setq org-log-done 'time)
+(setq org-directory "~/Documents/Notizen/")
+
+(setq org-capture-templates
+      '(("i" "Inbox" entry (file+headline "todo/agenda.org" "Inbox")
+         "* TODO %i\n%U\n%a" :immediate-finish t)
+        ("t" "Task" entry (file+headline "todo/agenda.org" "Inbox")
+         "* TODO %^{What} %^g\n%U\n%a\n%?" :empty-lines 1)))
+
+(defun my/capture-frame-cleanup ()
+  "Close a frame that was opened only to capture."
+  (when (equal "capture" (frame-parameter nil 'name))
+    (delete-frame)))
+
+(add-hook 'org-capture-after-finalize-hook #'my/capture-frame-cleanup)
+(add-hook 'org-capture-mode-hook #'delete-other-windows)
+
+;; PROJ has no follow-up left -> stuck.  The default matcher expects
+;; TODO/NEXT/NEXTACTION and never matches these keywords.
+(setq org-stuck-projects
+      '("/PROJ" ("TODO" "URGENT" "ONGOING" "WAITING") nil "SCHEDULED:\\|DEADLINE:")
+      org-enforce-todo-dependencies t)
+
+(setq org-agenda-custom-commands
+      '(("d" "Today"
+         ((agenda "" ((org-agenda-span 1)))
+          (todo "URGENT|ONGOING" ((org-agenda-overriding-header "In flight")))
+          (todo "WAITING|HOLD" ((org-agenda-overriding-header "Blocked")))))
+        ("w" "This week"
+         ((agenda "" ((org-agenda-span 7)))
+          (todo "URGENT|ONGOING" ((org-agenda-overriding-header "In flight")))
+          (todo "WAITING" ((org-agenda-overriding-header "Waiting on others")))
+          (stuck "" ((org-agenda-overriding-header "Stalled projects")))))))
 
 (use-package toc-org ; enabling table of contents
   :ensure t
