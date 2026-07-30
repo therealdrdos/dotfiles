@@ -758,43 +758,16 @@ FORCE is non-nil with a prefix argument and skips the check."
   :ensure t
   :magic ("\\$ANSIBLE_VAULT;" . ansible-vault-mode)
   :config
-  ;; Override password file discovery to search directory tree
-  (defun ansible-vault--guess-password-file ()
-    "Find .ansible_vault_pw by walking up dirs, fallback to defaults."
-    (interactive)
-    (when (not ansible-vault--password-file)
-      ;; Try to find .ansible_vault_pw by searching up directory tree
-      (when-let* ((buffer-file (buffer-file-name))
-                  (password-dir (locate-dominating-file buffer-file ".ansible_vault_pw"))
-                  (password-file (expand-file-name ".ansible_vault_pw" password-dir)))
-        (setq-local ansible-vault--password-file password-file))
+  ;; upstream only knows the env var, ansible.cfg and the global default
+  (defun my/vault-password-file (&rest _)
+    "Point `ansible-vault--password-file' at the nearest .ansible_vault_pw."
+    (unless ansible-vault--password-file
+      (when-let* ((file (buffer-file-name))
+                  (dir (locate-dominating-file file ".ansible_vault_pw")))
+        (setq-local ansible-vault--password-file
+                    (expand-file-name ".ansible_vault_pw" dir)))))
 
-      ;; Fall back to standard ansible-vault discovery methods
-      (when (not ansible-vault--password-file)
-        (let* ((env-val (or (getenv "ANSIBLE_VAULT_PASSWORD_FILE") ""))
-               (vault-id-pair (assoc ansible-vault--header-vault-id ansible-vault-vault-id-alist))
-               (ansible-config-path (ansible-vault--process-config-files)))
-          (cond
-           (vault-id-pair
-            (setq-local ansible-vault--vault-id (car vault-id-pair))
-            (setq-local ansible-vault--password-file (cdr vault-id-pair)))
-           (ansible-vault--header-vault-id
-            (ansible-vault--request-vault-id ansible-vault--header-vault-id))
-           (t (let ((password-file
-                     (or (and (not (string-empty-p env-val)) env-val)
-                         ansible-config-path
-                         ansible-vault-password-file)))
-                (setq-local ansible-vault--password-file password-file)))))))
-
-    ;; Prompt for password if file not found or unreadable
-    (when (not (and ansible-vault--password-file
-                    (file-readable-p ansible-vault--password-file)))
-      (let ((vault-id (or ansible-vault--header-vault-id ansible-vault--vault-id)))
-        (if vault-id
-            (ansible-vault--request-vault-id vault-id)
-          (call-interactively 'ansible-vault--request-password))))
-
-    ansible-vault--password-file)
+  (advice-add 'ansible-vault--guess-password-file :before #'my/vault-password-file)
 
   (add-hook 'ansible-vault-mode-hook
             (lambda () (setq-local require-final-newline nil))))
