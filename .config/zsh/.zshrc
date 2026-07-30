@@ -135,6 +135,10 @@ hash -d infra=~/Documents/git/tesserac-infra
 
 mkcd() { mkdir -p -- "$1" && cd -- "$1" || return; }
 
+## org-capture into the running daemon
+oc()  { emacsclient -e "(org-capture-string \"$*\" \"i\")" >/dev/null; }
+ocf() { emacsclient -c --frame-parameters='(quote (name . "capture"))' -n -e '(org-capture nil "t")'; }
+
 ## direnv
 (( $+commands[direnv] )) && eval "$(direnv hook zsh)"
 
