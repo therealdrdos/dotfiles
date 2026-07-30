@@ -369,6 +369,11 @@
   :demand t
   :hook ((org-mode . hl-todo-mode)
          (prog-mode . hl-todo-mode))
+  :bind (:map hl-todo-mode-map
+         ("C-c t n" . hl-todo-next)
+         ("C-c t p" . hl-todo-previous)
+         ("C-c t o" . hl-todo-occur)
+         ("C-c t g" . hl-todo-rgrep))
   :config
   (setq hl-todo-highlight-punctuation ":"
         hl-todo-keyword-faces
