@@ -115,7 +115,7 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 (setq use-package-always-defer t)
-(setq use-package-expand-minimally t)
+;; :after is not a load trigger -- blocks need :hook/:bind/:mode or :demand t.
 
 ;; Platform-specific config.
 (load (expand-file-name "platform-config" user-emacs-directory) t)
@@ -275,33 +275,29 @@
         (69 . "#5E81AC")
         (70 . "#4C566A")))
 
+(setq org-auto-align-tags t
+      org-tags-column 0
+      org-fold-catch-invisible-edits 'show-and-error
+      org-special-ctrl-a/e t
+      org-insert-heading-respect-content t
+
+      org-agenda-tags-column 0
+      org-agenda-block-separator ?─
+      org-agenda-time-grid
+      '((daily today require-timed)
+        (800 1000 1200 1400 1600 1800 2000)
+        " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+      org-agenda-current-time-string
+      "⭠ now ─────────────────────────────────────────────────")
+
+;; Hooks, not :demand -- org-modern requires org and would pull it into startup.
 (use-package org-modern
   :ensure t
-  :config
-  (setq
-   org-auto-align-tags t
-   org-tags-column 0
-   org-fold-catch-invisible-edits 'show-and-error
-   org-special-ctrl-a/e t
-   org-insert-heading-respect-content t
-
-   ;; Don't style the following
-   ;; org-modern-tag nil
-   ;; org-modern-priority nil
-   org-modern-todo nil
-   ;; org-modern-table nil
-
-   ;; Agenda styling
-   org-agenda-tags-column 0
-   org-agenda-block-separator ?─
-   org-agenda-time-grid
-   '((daily today require-timed)
-     (800 1000 1200 1400 1600 1800 2000)
-     " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
-   org-agenda-current-time-string
-   "⭠ now ─────────────────────────────────────────────────")
-
-  (global-org-modern-mode))
+  :hook ((org-mode . org-modern-mode)
+         (org-agenda-finalize . org-modern-agenda))
+  :init
+  (setq org-modern-todo nil
+        org-modern-table nil))   ; valign handles alignment
 
 ;; Pixel-level table alignment for variable-pitch-mode
 (use-package valign
@@ -483,7 +479,13 @@
 ;; NOTE to myself: If I have problems with C, I should have a look at flycheck-pkg-config
 (use-package flycheck
   :ensure t
-  :init (global-flycheck-mode))
+  :init (global-flycheck-mode)
+  :config
+  ;; flycheck ships the eglot bridge itself, the flycheck-eglot package is dead weight
+  (setq flycheck-eglot-exclusive nil    ; keep yamllint running next to the LSP
+        ;; ...which otherwise lints C twice, clangd plus clang
+        flycheck-disabled-checkers '(c/c++-clang c/c++-gcc c/c++-cppcheck))
+  (global-flycheck-eglot-mode 1))
 
 
 ;;;; Additional language support
@@ -583,11 +585,11 @@
               (setq-local font-lock-defaults '(yaml-font-lock-keywords))
               (font-lock-mode 1))))
 
-;; Jinja2 template highlighting
+;; Jinja2 templates.  A bare regexp in :mode pairs with the package name, not the mode.
 (use-package poly-ansible
   :ensure t
-  :after ansible
-  :mode ("\\.j2\\'" "\\.jinja2\\'"))
+  :mode (("\\.j2\\'" . poly-ansible-mode)
+         ("\\.jinja2\\'" . poly-ansible-mode)))
 
 (use-package highlight-indentation
   :ensure t
@@ -679,9 +681,6 @@
 (use-package riscv-mode
   :ensure t)
 
-(use-package verilog-mode
-  :ensure nil)
-
 (use-package js2-mode
   :ensure t)
 
@@ -703,6 +702,7 @@
 (use-package company-web
   :ensure t
   :after company
+  :demand t
   :config
   (add-to-list 'company-backends 'company-web-html))
 
@@ -723,13 +723,6 @@
 
   (add-to-list 'eglot-server-programs
                '(yaml-mode . ("ansible-language-server" "--stdio"))))
-
-;; Makes flycheck and eglot work together
-(use-package flycheck-eglot
-  :ensure t
-  :after (flycheck eglot)
-  :config
-  (global-flycheck-eglot-mode 1))
 
 (use-package yasnippet
   :ensure t
@@ -783,13 +776,9 @@
   (monet-mode 1)
   (claude-code-mode))
 
-;; Ediff
 ;; Restore previous window layout after ediff exits
-(use-package winner
-  :ensure nil
-  :config
-  (winner-mode 1)
-  (add-hook 'ediff-after-quit-hook-internal #'winner-undo))
+(winner-mode 1)
+(add-hook 'ediff-after-quit-hook-internal #'winner-undo)
 
 
 ;;;; Terminal size fix for eat

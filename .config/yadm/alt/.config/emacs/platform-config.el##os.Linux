@@ -14,6 +14,7 @@
 (use-package flycheck-checkbashisms
   :after flycheck
   :ensure t
+  :demand t
   :config
   (flycheck-checkbashisms-setup)
   (setq flycheck-checkbashisms-newline t)
