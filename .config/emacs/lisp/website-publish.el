@@ -11,7 +11,6 @@
 ;; - Automatic blog index generation with descriptions and dates
 ;; - RSS feed with configurable URLs
 ;; - Plain-text export with ANSI color codes for terminal viewing
-;; - Performance-optimized with memoized directory lookups
 ;;
 ;; Directory Structure:
 ;;   website-root/
@@ -35,15 +34,12 @@
 ;; - `my/rss-avatar-url': Avatar image URL for RSS feed
 ;;
 ;; Advanced:
-;; - `my/site-root-reset': Clear cached root (useful after changing directories)
 ;; - `my/website-publish-mode-disable': Disable automatic root detection
-;; - `my/website-publish-force': Force-publish all files (ignores cache)
+;; - `my/website-publish-force': Force-publish all files (ignores the cache)
 ;;
-;; Cache Behavior:
-;; - Automatic cleanup when entire site/ directory is deleted
-;; - Individual deleted files: use M-x my/website-publish-force or C-u M-x org-publish
+;; The publish cache is dropped automatically when the whole site/ directory
+;; is gone.  For individual deleted files use `my/website-publish-force'.
 ;;
-
 
 ;;; Code:
 
@@ -54,42 +50,13 @@
 
 ;;;; Site Root Detection
 
-(defvar my/--site-root-directory nil
-  "Cached website project root directory.
-Internal variable, use `my/site-root' to access.
-Reset with `my/site-root-reset'.")
-
-(defun my/site-root ()
-  "Find and return website project root by searching for template.html.
-Searches current directory and all parent directories.
-Returns the directory path with trailing slash.
-Signals an error if template.html cannot be found.
-
-Result is memoized for performance.  Use `my/site-root-reset' to
-invalidate the cache after changing directories."
-  (or my/--site-root-directory
-      (setq my/--site-root-directory
-            (let ((root (locate-dominating-file default-directory "template.html")))
-              (if root
-                  (file-name-as-directory (expand-file-name root))
-                (error "Website project not found!
-
-Cannot find template.html in current directory or any parent directory.
-Current directory: %s
-
-To fix this:
-  1. Navigate to your website project directory (where template.html exists)
-  2. Or run M-x cd RET /path/to/your/website/ RET
-  3. Then try M-x org-publish RET website RET again"
-                       default-directory))))))
-
-(defun my/site-root-reset ()
-  "Clear cached website root directory.
-Call this after changing directories to force a fresh search."
-  (interactive)
-  (setq my/--site-root-directory nil)
-  (when (called-interactively-p 'any)
-    (message "Website root cache cleared")))
+(defun my/site-root (&optional noerror)
+  "Return the directory holding template.html, searching upwards.
+With NOERROR return nil instead of signalling when there is none."
+  (let ((root (locate-dominating-file default-directory "template.html")))
+    (cond (root (file-name-as-directory (expand-file-name root)))
+          (noerror nil)
+          (t (error "No template.html above %s" default-directory)))))
 
 (defun my/site-path (sub)
   "Return absolute path of SUB inside website root.
@@ -114,14 +81,27 @@ Website root is determined dynamically by searching for template.html."
 (defconst my/--posts-dir "posts/"
   "Directory name for blog posts (with trailing slash).")
 
-;;;; Global Export Parameters
+;;;; Export Parameters
 
-(setq org-html-doctype "html5")
-(setq org-html-html5-fancy t)
-(setq org-html-scripts "")           ; strip all JS snippets that ox-html adds
-(setq org-export-with-toc nil)       ; default – override per file via #+OPTIONS
+(defconst my/--html-props
+  '(:html-doctype "html5"
+    :html-html5-fancy t
+    :html-validation-link nil
+    :with-toc nil                ; override per file via #+OPTIONS
+    :body-only t)                ; template.html brings its own head
+  "Export settings shared by the HTML components.")
 
-(setq org-html-validation-link nil) ; deactivate org validation link
+(defvar my/--html-scripts nil
+  "Saved `org-html-scripts' while publishing.")
+
+(defun my/strip-scripts (_plist)
+  "Drop the JS snippets ox-html injects, for the duration of a publish run."
+  (setq my/--html-scripts org-html-scripts
+        org-html-scripts ""))
+
+(defun my/restore-scripts (_plist)
+  "Undo `my/strip-scripts'."
+  (setq org-html-scripts my/--html-scripts))
 
 ;;;; HTML Template System
 
@@ -136,24 +116,16 @@ BACKEND – What backend is the caller
 {{year}}         – current year
 {{tags}}         – tag link list (posts only)
 {{contents}}     – the exported HTML of the buffer"
-  (if (eq backend 'html)
+  (if (and (eq backend 'html) (my/site-root t))
       (let* ((template-file (my/site-path "template.html"))
              (title (org-export-data (plist-get info :title) info))
              (description (or (plist-get info :description) ""))
              (year (format-time-string "%Y"))
-             (tags (when-let ((filetags (plist-get info :filetags)))
+             (tags (when-let* ((filetags (plist-get info :filetags)))
                      (mapconcat (lambda (tag)
                                   (format "<a class=\"tag\" href=\"%s#%s\">#%s</a>"
                                           my/--blog-path tag tag))
                                 filetags " "))))
-        ;; Verify template file exists before attempting to read it
-        (unless (file-exists-p template-file)
-          (error "Template.html not found at: %s
-
-This file is required for HTML export.  Please ensure:
-  1. You are in the correct website directory
-  2. template.html exists in the website root
-  3. The file has not been moved or deleted" template-file))
         (with-temp-buffer
           (insert-file-contents template-file)
           (goto-char (point-min))
@@ -298,7 +270,10 @@ This allows publishing from any directory containing template.html."
            :publishing-directory ,(my/site-path "site")
            :recursive t
            :publishing-function org-html-publish-to-html
-           :with-author nil)
+           :preparation-function my/strip-scripts
+           :completion-function my/restore-scripts
+           :with-author nil
+           ,@my/--html-props)
 
           ;; Blog posts
           ("posts"
@@ -307,8 +282,11 @@ This allows publishing from any directory containing template.html."
            :base-extension "org"
            :recursive t
            :publishing-function org-html-publish-to-html
+           :preparation-function my/strip-scripts
+           :completion-function my/restore-scripts
            :with-author nil
            :section-numbers nil
+           ,@my/--html-props
            :auto-sitemap t
            :sitemap-filename "../blog.org"
            :sitemap-title "Blog"
@@ -391,7 +369,6 @@ Use this when individual files were deleted from output directory."
 (defun my/refresh-publish-alist-advice (&rest _args)
   "Refresh `org-publish-project-alist' before publishing.
 This ensures the correct website root is used based on current directory."
-  (my/site-root-reset)
   (my/setup-publish-alist)
   (my/org-publish-clean-stale-cache))
 
