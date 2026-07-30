@@ -98,6 +98,27 @@
 (setq-default tab-width 4)
 (setq require-final-newline t)
 
+(repeat-mode 1)
+(setq repeat-exit-timeout 3)
+
+(kill-ring-deindent-mode 1)
+
+(setq kill-do-not-save-duplicates t
+      save-interprogram-paste-before-kill t
+      scroll-margin 3
+      scroll-conservatively 101
+      display-line-numbers-width 3
+      display-line-numbers-grow-only t
+      sentence-end-double-space nil
+      auto-revert-avoid-polling t          ; use file notifications instead
+      dired-dwim-target t
+      dired-kill-when-opening-new-dired-buffer t
+      dired-do-revert-buffer t
+      dired-recursive-copies 'always
+      dired-recursive-deletes 'top)
+
+(add-hook 'dired-mode-hook #'dired-hide-details-mode)
+
 ;;; Keybinding to open init.el quickly
 (defun init ()
   "Quickly open the init.el config file."
@@ -637,6 +658,18 @@ FORCE is non-nil with a prefix argument and skips the check."
   :ensure t
   :config
   (setq yaml-indent-offset 2))
+
+;; bolp filter: TAB only folds at column 0, elsewhere it still indents
+(setq outline-minor-mode-cycle t
+      outline-minor-mode-cycle-filter 'bolp)
+
+(defun my/yaml-outline ()
+  "Treat yaml keys as outline headings."
+  (setq-local outline-regexp "^\\([ \t]*\\)\\(?:- \\)?[^ \t\n#-][^\n:]*:"
+              outline-level (lambda () (1+ (/ (current-indentation) yaml-indent-offset))))
+  (outline-minor-mode 1))
+
+(add-hook 'yaml-mode-hook #'my/yaml-outline)
 
 
 ;;;; Ansible Development
