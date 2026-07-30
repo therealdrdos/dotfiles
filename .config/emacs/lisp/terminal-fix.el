@@ -65,12 +65,12 @@ Removes line numbers, margins, and fringes."
 
 (defun terminal-fix--buffer-is-terminal-like ()
   "Return non-nil if current buffer is a terminal or shell-like buffer."
-  (apply #'derived-mode-p (append terminal-fix-terminal-modes terminal-fix-shellish-modes)))
+  (derived-mode-p (append terminal-fix-terminal-modes terminal-fix-shellish-modes)))
 
 (defun terminal-fix--buffer-is-pty-terminal ()
   "Return non-nil if current buffer is a true PTY terminal.
 Checks for vterm-mode, term-mode, and eat-mode."
-  (apply #'derived-mode-p terminal-fix-terminal-modes))
+  (derived-mode-p terminal-fix-terminal-modes))
 
 (defun terminal-fix--visual-cleanup ()
   "Disable UI chrome that steals columns and avoid soft-wrapping.
@@ -78,10 +78,15 @@ Applies to terminal buffers."
   (when (and terminal-fix-cleanup-ui (terminal-fix--buffer-is-terminal-like))
     ;; No line numbers (they consume columns).
     (when (fboundp 'display-line-numbers-mode) (display-line-numbers-mode -1))
-    ;; No extra window margins.
-    (set-window-margins nil 0 0)
-    ;; No fringes (left/right gutter).
-    (set-window-fringes nil 0 0)
+    ;; Buffer-local, because eat-make creates the buffer before display.
+    (setq-local left-margin-width 0
+                right-margin-width 0
+                left-fringe-width 0
+                right-fringe-width 0)
+    ;; Windows that already exist need it applied directly.
+    (dolist (win (get-buffer-window-list nil nil t))
+      (set-window-margins win 0 0)
+      (set-window-fringes win 0 0))
     ;; Do not soft-wrap terminal lines.
     (setq-local truncate-lines t)))
 
