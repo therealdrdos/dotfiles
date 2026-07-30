@@ -483,7 +483,10 @@
   :config
   (setq flycheck-eglot-exclusive nil    ; keep yamllint running next to the LSP
         flycheck-disabled-checkers '(c/c++-clang c/c++-gcc c/c++-cppcheck)) ; clangd covers C
-  (global-flycheck-eglot-mode 1))
+  (global-flycheck-eglot-mode 1)
+  ;; ansible-lint arrives through ansible-language-server
+  (flycheck-add-next-checker 'eglot-check 'yaml-yamllint)
+  (flycheck-add-next-checker 'eglot-check 'yaml-actionlint))
 
 
 ;;;; Additional language support
@@ -609,44 +612,6 @@
                       '(("Tasks" "^- name: \\(.+\\)" 1)
                         ("Roles" "^  role: \\(.+\\)" 1)
                         ("Vars" "^\\([a-z_]+\\):" 1)))))))
-
-;; Flycheck: yamllint + ansible-lint chaining
-(with-eval-after-load 'flycheck
-  (flycheck-define-checker yaml-yamllint
-    "YAML syntax checker using yamllint."
-    :command ("yamllint" "-f" "parsable" source)
-    :error-patterns
-    ((error line-start
-            (file-name) ":" line ":" column ": [error] "
-            (message) line-end)
-     (warning line-start
-              (file-name) ":" line ":" column ": [warning] "
-              (message) line-end))
-    :modes yaml-mode)
-
-  (flycheck-define-checker ansible-lint
-    "Ansible playbook linter."
-    :command ("ansible-lint"
-              "--parseable-severity"
-              "--nocolor"
-              "-f" "pep8"
-              source-inplace)
-    :error-patterns
-    ((error line-start
-            (file-name) ":" line ":"
-            (optional column ":")
-            " " (message) line-end))
-    :modes yaml-mode
-    :predicate (lambda ()
-                 ;; Only run on Ansible files
-                 (and (buffer-file-name)
-                      (or (string-match-p "playbook" (buffer-file-name))
-                          (string-match-p "roles/" (buffer-file-name))
-                          (string-match-p "tasks/" (buffer-file-name))
-                          (string-match-p "handlers/" (buffer-file-name))
-                          (string-match-p "vars/" (buffer-file-name))))))
-
-  (flycheck-add-next-checker 'yaml-yamllint 'ansible-lint))
 
 
 (use-package dockerfile-mode
