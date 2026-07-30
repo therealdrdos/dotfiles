@@ -316,6 +316,15 @@
    (plantuml   . t)))
 (setq org-plantuml-exec-mode 'plantuml)
 
+(setq org-babel-remote-temporary-directory "/tmp/")
+(add-to-list 'org-babel-default-header-args:shell '(:results . "output"))
+
+;; #+call: lines resolve against this
+(with-eval-after-load 'ob-lob
+  (let ((lob (expand-file-name "ops.org" org-directory)))
+    (when (file-exists-p lob)
+      (org-babel-lob-ingest lob))))
+
 (setq org-todo-keywords
       '((sequence
          "PROJ(p)"
@@ -991,6 +1000,12 @@ FORCE is non-nil with a prefix argument and skips the check."
 
 (use-package ox-rss
   :ensure t)
+
+;; 'css emits classes, so the colours live in the site's own stylesheet
+(use-package htmlize
+  :ensure t
+  :init (setq org-html-htmlize-output-type 'css))
+
 (require 'website-publish)
 
 
