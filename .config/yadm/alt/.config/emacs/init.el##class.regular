@@ -129,7 +129,7 @@
   :demand t
   :init
   (setq solarized-use-variable-pitch t)
-  (setq solarized-scale-org-headlines t)
+  (setq solarized-scale-org-headlines nil)   ; org-level-* sizes come from the user theme
   (setq solarized-high-contrast-mode-line t)
   (setq solarized-highlight-numbers t)
   :config
@@ -166,13 +166,26 @@
 
 ;;;; Org-Mode
 (require 'org)
-;; Make the document title a bit bigger
-(with-eval-after-load 'org-faces
-  (set-face-attribute 'org-document-title nil
-                      :font my/mono-font
-                      :weight 'bold
-                      :height 1.8))
 
+;; Face tweaks live in the `user' theme so they survive load-theme.
+(custom-theme-set-faces 'user
+ `(org-document-title  ((t (:font ,my/mono-font :weight bold :height 1.8))))
+ `(org-level-1         ((t (:font ,my/mono-font :weight bold :height 1.35))))
+ `(org-level-2         ((t (:font ,my/mono-font :weight bold :height 1.3))))
+ `(org-level-3         ((t (:font ,my/mono-font :weight bold :height 1.2))))
+ `(org-level-4         ((t (:font ,my/mono-font :weight bold :height 1.1))))
+ `(org-level-5         ((t (:font ,my/mono-font :weight bold :height 1.1))))
+ `(org-level-6         ((t (:font ,my/mono-font :weight bold :height 1.1))))
+ `(org-level-7         ((t (:font ,my/mono-font :weight bold :height 1.1))))
+ `(org-level-8         ((t (:font ,my/mono-font :weight bold :height 1.1))))
+ '(org-block           ((t (:inherit fixed-pitch :height 0.85))))
+ '(org-code            ((t (:inherit (shadow fixed-pitch) :height 0.85))))
+ '(org-verbatim        ((t (:inherit (shadow fixed-pitch) :height 0.85))))
+ '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+ '(org-meta-line       ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+ '(org-checkbox        ((t (:inherit fixed-pitch))))
+ '(org-table           ((t (:inherit fixed-pitch))))
+ '(org-indent          ((t (:inherit (org-hide fixed-pitch) :height 0.85)))))
 
 (global-set-key (kbd "C-c l") #'org-store-link)
 (global-set-key (kbd "C-c a") #'org-agenda)
@@ -185,26 +198,6 @@
   :commands toc-org-enable
   :init (add-hook 'org-mode-hook 'toc-org-enable))
 
-;; Styling with variable pitch
-(with-eval-after-load 'org-faces
-  (when (facep 'org-block)
-    (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch :height 0.85))
-  (when (facep 'org-code)
-    (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch) :height 0.85))
-  (when (facep 'org-verbatim)
-    (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch) :height 0.85))
-  (when (facep 'org-special-keyword)
-    (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch)))
-  (when (facep 'org-meta-line)
-    (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch)))
-  (when (facep 'org-checkbox)
-    (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
-  (when (facep 'org-table)
-    (set-face-attribute 'org-table nil :inherit 'fixed-pitch)))
-
-(with-eval-after-load 'org-indent
-  (when (facep 'org-indent)
-    (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch) :height 0.85)))
 (add-hook 'org-mode-hook 'variable-pitch-mode)
 
 ;; Fix latex preview size
@@ -321,18 +314,6 @@
                                           ("HOLD" . 9744)
                                           ("ABORT" . 9744)
                                           ("POSTPONED" . 9744))))
-
-;; Resize Org headings
-(with-eval-after-load 'org-faces
-  (dolist (face '((org-level-1 . 1.35)
-                  (org-level-2 . 1.3)
-                  (org-level-3 . 1.2)
-                  (org-level-4 . 1.1)
-                  (org-level-5 . 1.1)
-                  (org-level-6 . 1.1)
-                  (org-level-7 . 1.1)
-                  (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font my/mono-font :weight 'bold :height (cdr face))))
 
 ;;;; Org mode custom functions
 (defun my/org-fold-completed-tasks ()
@@ -774,21 +755,13 @@
 (defun drdos/frame-setup (frame)
   "Apply UI settings for new FRAME (GUI or TTY)."
   (with-selected-frame frame
-    ;; Load theme idempotent
-    (load-theme 'solarized-light t)
-
     (when (fboundp 'doom-modeline-mode)
-      (doom-modeline-mode 1))
-
-    (when (fboundp 'vertico-mode)
-      (vertico-mode 1))))
+      (doom-modeline-mode 1))))
 
 ;; Include every new Frame
 (add-hook 'after-make-frame-functions #'drdos/frame-setup)
 
-;; Also include the first frame (gui-start without daemon)
-(when (frame-live-p (selected-frame))
-  (drdos/frame-setup (selected-frame)))
+(drdos/frame-setup (selected-frame))
 
 
 ;; Optional custom accounting lib.
