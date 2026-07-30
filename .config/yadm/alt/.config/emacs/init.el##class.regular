@@ -84,9 +84,9 @@
       version-control t)
 
 (setq initial-scratch-message nil)
-(setq visible-bell t)
+(setq ring-bell-function #'ignore)
 (setq global-auto-revert-non-file-buffers t) ; refresh dired and co on changes automatically
-(global-set-key [escape] 'keyboard-escape-quit) ; Escape Minibuffer with one not three escape presses
+(keymap-set minibuffer-local-map "<escape>" #'minibuffer-keyboard-quit)
 (setq history-length 100)
 (setq recentf-max-saved-items 100)
 (setq delete-by-moving-to-trash t)
