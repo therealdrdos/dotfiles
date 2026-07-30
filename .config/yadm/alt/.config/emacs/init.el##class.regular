@@ -917,9 +917,32 @@ FORCE is non-nil with a prefix argument and skips the check."
   (setq-default eglot-workspace-configuration
                 '(:yaml (:schemaStore (:enable t) :validate t :hover t :completion t))))
 
+;; yas-indent-line 'fixed: the default reindents every line through
+;; yaml-indent-line and flattens the snippet.
+(defun my/ansible-snippets ()
+  "Define the yaml snippets in code, no snippet directory needed."
+  (let ((env '((yas-indent-line 'fixed))))
+    (yas-define-snippets
+     'yaml-mode
+     `(("task" "- name: ${1:what it does}\n  ${2:ansible.builtin.command}:\n    $0"
+        "task" nil nil ,env)
+       ("handler" "- name: ${1:restart nginx}\n  ansible.builtin.service:\n    name: ${2:nginx}\n    state: restarted\n  listen: ${3:$1}"
+        "handler" nil nil ,env)
+       ("block" "- name: ${1:what it does}\n  block:\n    - $0\n  rescue:\n    - name: report\n      ansible.builtin.fail:\n        msg: \"$1 failed\""
+        "block/rescue" nil nil ,env)
+       ("loop" "  loop: \"{{ ${1:items} }}\"\n  loop_control:\n    label: \"{{ item.${2:name} }}\"$0"
+        "loop + label" nil nil ,env)
+       ("until" "  register: ${1:result}\n  until: ${2:$1 is succeeded}\n  retries: ${3:5}\n  delay: ${4:3}$0"
+        "register/until" nil nil ,env)
+       ("job" "  ${1:lint}:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - name: ${2:ansible-lint}\n        run: ${3:ansible-lint}$0"
+        "gh actions job" nil nil ,env)))))
+
 (use-package yasnippet
   :ensure t
-  :init (yas-global-mode))
+  :init
+  ;; must be set before yas-global-mode, which calls yas-reload-all
+  (add-hook 'yas-after-reload-hook #'my/ansible-snippets)
+  (yas-global-mode))
 
 (use-package emmet-mode
   :ensure t
