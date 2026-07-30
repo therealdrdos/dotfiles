@@ -865,23 +865,41 @@ FORCE is non-nil with a prefix argument and skips the check."
   (add-to-list 'company-backends 'company-web-html))
 
 ;;;; Flycheck Stuff
+;; Ansible trees get the ansible server, every other yaml gets schema
+;; validation from SchemaStore: GitHub Actions, compose, k8s.
+(defun my/yaml-server (_interactive _project)
+  "Pick the language server for this yaml buffer."
+  (if (string-match-p
+       "/\\(roles\\|tasks\\|handlers\\|playbooks\\|group_vars\\|host_vars\\)/\\|playbook.*\\.ya?ml\\'"
+       (or buffer-file-name ""))
+      '("ansible-language-server" "--stdio")
+    '("yaml-language-server" "--stdio")))
+
+(defun my/yaml-eglot-maybe ()
+  "Start eglot unless this is a vault buffer or the server is not installed."
+  (unless (my/vault-buffer-p)          ; eglot sends the whole buffer on didOpen
+    (when (executable-find (car (my/yaml-server nil nil)))
+      (eglot-ensure))))
+
 ;; Eglot for C/C++ and YAML/Ansible
 (use-package eglot
   :ensure nil
   :defer t
   ;; both spellings: the remap only happens where the grammar is present
   :hook ((c-mode c-ts-mode c++-mode c++-ts-mode objc-mode) . eglot-ensure)
-  ;; eglot sends the whole buffer on didOpen -- never in vault files
-  :hook (yaml-mode . (lambda ()
-                       (unless (my/vault-buffer-p)
-                         (eglot-ensure))))
+  :hook (yaml-mode . my/yaml-eglot-maybe)
   :config
   (setq eglot-autoshutdown t
-        ;; Disable event logging (performance optimization)
-        eglot-events-buffer-config '(:size 0))
+        eglot-events-buffer-config '(:size 0)   ; the event log costs more than it tells
+        eglot-extend-to-xref t                  ; M-. into installed collections
+        eglot-sync-connect 0                    ; never block on a server coming up
+        read-process-output-max (* 1024 1024))
 
   (add-to-list 'eglot-server-programs
-               '(yaml-mode . ("ansible-language-server" "--stdio"))))
+               '((yaml-mode yaml-ts-mode) . my/yaml-server))
+
+  (setq-default eglot-workspace-configuration
+                '(:yaml (:schemaStore (:enable t) :validate t :hover t :completion t))))
 
 (use-package yasnippet
   :ensure t
