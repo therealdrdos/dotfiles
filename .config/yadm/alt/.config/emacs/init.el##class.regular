@@ -491,13 +491,16 @@
 
 ;;;; Additional language support
 
-(setq major-mode-remap-alist
-      '((c-mode          . c-ts-mode)
-        (c++-mode        . c++-ts-mode)
-        (python-mode     . python-ts-mode)
-        (css-mode        . css-ts-mode)
-        (json-mode       . json-ts-mode)
-        (sh-mode         . bash-ts-mode)))
+;; A ts-mode without its grammar has neither font-lock nor indentation.
+;; treesit-language-available-p is absent in builds without tree-sitter.
+(when (treesit-available-p)
+  (dolist (e '((c      c-mode       . c-ts-mode)
+               (cpp    c++-mode     . c++-ts-mode)
+               (python python-mode  . python-ts-mode)
+               (css    css-mode     . css-ts-mode)
+               (json   js-json-mode . json-ts-mode)))
+    (when (treesit-language-available-p (car e))
+      (add-to-list 'major-mode-remap-alist (cdr e)))))
 
 (use-package php-mode
   :ensure t)
@@ -667,7 +670,8 @@
 (use-package eglot
   :ensure nil
   :defer t
-  :hook ((c-mode c++-mode objc-mode cuda-mode) . eglot-ensure)
+  ;; both spellings: the remap only happens where the grammar is present
+  :hook ((c-mode c-ts-mode c++-mode c++-ts-mode objc-mode) . eglot-ensure)
   ;; eglot sends the whole buffer on didOpen -- never in vault files
   :hook (yaml-mode . (lambda ()
                        (unless (my/vault-buffer-p)
@@ -688,8 +692,6 @@
   :ensure t
   :hook  (html-ts-mode . emmet-mode)
   :config (setq emmet-move-cursor-between-quotes t))
-
-(add-to-list 'auto-mode-alist '("\\.css\\'" . css-ts-mode))
 
 ;; flycheck-checkbashisms loaded from platform-config.el (Linux only)
 

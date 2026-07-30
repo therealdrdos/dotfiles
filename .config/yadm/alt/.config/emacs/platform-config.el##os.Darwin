@@ -5,6 +5,9 @@
 (add-to-list 'default-frame-alist '(font . "DroidSansM Nerd Font-14"))
 (set-face-attribute 'default nil :family my/mono-font :height 140)
 
+;;; Tree-sitter grammars sit outside the default search path
+(setq treesit-extra-load-path '("/opt/local/lib/"))
+
 ;;; PATH from shell
 (use-package exec-path-from-shell
   :ensure t
