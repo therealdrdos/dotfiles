@@ -260,11 +260,13 @@
 (plist-put org-format-latex-options :scale 2)
 
 ;; Declutter stuff
-(setq org-adapt-indentation t
+(setq org-adapt-indentation nil   ; org-indent-mode indents visually already
       org-hide-leading-stars t
       org-hide-emphasis-markers t
       org-pretty-entities t
-      org-ellipsis "  -><-")
+      org-ellipsis "  -><-"
+      org-startup-folded 'content
+      org-log-into-drawer t)
 
 ;; Display code blocks normally and fix tab usage inside of code blocks
 (setq org-src-fontify-natively t
@@ -292,7 +294,7 @@
         (sequence
          "TODO(t)" "URGENT(u)" "ONGOING(o)" "WAITING(w)"
          "|"
-         "DONE(d)" "ABORT(a)")))
+         "ABORT(a)")))
 
 ;; Highlight TODO and other words
 (use-package hl-todo
@@ -345,7 +347,9 @@
   :hook ((org-mode . org-modern-mode)
          (org-agenda-finalize . org-modern-agenda))
   :init
+  ;; org-superstar owns the stars and todo bullets, org-modern the rest
   (setq org-modern-todo nil
+        org-modern-star nil
         org-modern-table nil))   ; valign handles alignment
 
 ;; Pixel-level table alignment for variable-pitch-mode
@@ -385,7 +389,6 @@
            (when (and state (member state org-done-keywords))
              (org-fold-subtree t))))
        nil 'file))))
-(add-hook 'org-mode-hook #'my/org-fold-completed-tasks)
 
 ;;;; Minibuffer tweaks
 
