@@ -442,11 +442,51 @@
 
 (use-package magit
   :ensure t
+  :init
+  ;; in :init, deferring would miss every save before the first C-x g
+  (setq magit-wip-merge-branch t)             ; keeps wip refs out of the gc
+  (magit-wip-mode 1)
   :config
+  (setq magit-diff-refine-hunk 'all           ; word-level diffs inside a hunk
+        magit-revision-insert-related-refs 'mixed
+        magit-status-goto-file-position t
+        git-commit-summary-max-length 80      ; matches commitlint
+        git-commit-style-convention-checks '(non-empty-second-line
+                                             overlong-summary-line))
   (magit-add-section-hook 'magit-status-sections-hook
                           'magit-insert-modules
                           'magit-insert-unpushed-to-upstream-or-recent
+                          'append)
+  (magit-add-section-hook 'magit-status-sections-hook
+                          'magit-insert-worktrees
+                          'magit-insert-modules
                           'append))
+
+(defvar my/conventional-commit-re
+  "\\(?:fixup!\\|squash!\\|amend!\\|Merge \\|Revert \\)\\|\
+[a-z]+\\(?:([a-z0-9./-]+)\\)?!?: [^A-Z].\\{2,\\}$"
+  "Header shape commitlint accepts.")
+
+(defun my/git-commit-check-conventional (force)
+  "Ask before finishing a commit whose header is not conventional.
+FORCE is non-nil with a prefix argument and skips the check."
+  (or force
+      (let ((case-fold-search nil))
+        (save-excursion
+          (goto-char (point-min))
+          (or (looking-at my/conventional-commit-re)
+              (y-or-n-p "Header is not a conventional commit.  Continue? "))))))
+
+(add-hook 'git-commit-finish-query-functions #'my/git-commit-check-conventional)
+
+(defun my/smerge-maybe ()
+  "Turn on `smerge-mode' when the file has conflict markers."
+  (save-excursion
+    (goto-char (point-min))
+    (when (re-search-forward "^<<<<<<< " nil t)
+      (smerge-mode 1))))
+
+(add-hook 'find-file-hook #'my/smerge-maybe)
 
 (use-package alert
   :ensure t)
@@ -455,7 +495,10 @@
   :ensure t
   :hook ((prog-mode . diff-hl-mode)
          (text-mode . diff-hl-mode))
+  :bind (:map diff-hl-mode-map
+         ("C-x v A" . diff-hl-amend-mode))   ; diff against HEAD^ while amending
   :config
+  (setq diff-hl-show-staged-changes nil)
   (diff-hl-flydiff-mode 1)
   (add-hook 'magit-pre-refresh-hook  #'diff-hl-magit-pre-refresh)
   (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh))
