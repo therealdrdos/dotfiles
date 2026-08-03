@@ -374,6 +374,23 @@
 (use-package magit
   :ensure t)
 
+(with-eval-after-load 'tramp
+  ;; git finds no repo in $HOME; "yadm enter" exports GIT_DIR and GIT_WORK_TREE
+  (add-to-list 'tramp-methods
+               '("yadm"
+                 (tramp-login-program "yadm")
+                 (tramp-login-args (("enter")))
+                 (tramp-remote-shell "/bin/sh")
+                 (tramp-remote-shell-args ("-c")))))
+
+(defun my/yadm-status ()
+  "Magit status for the yadm repo."
+  (interactive)
+  (require 'tramp)                      ; brings in the yadm method
+  (magit-status "/yadm::"))
+
+(global-set-key (kbd "C-c y") #'my/yadm-status)
+
 (use-package diff-hl
   :ensure t
   :hook ((prog-mode . diff-hl-mode)

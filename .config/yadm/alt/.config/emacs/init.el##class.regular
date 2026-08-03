@@ -645,6 +645,14 @@
                           'magit-insert-modules
                           'append))
 
+(defun my/yadm-status ()
+  "Magit status for the yadm repo."
+  (interactive)
+  (require 'tramp)                      ; brings in the yadm method
+  (magit-status "/yadm::"))
+
+(keymap-global-set "C-c y" #'my/yadm-status)
+
 (defvar my/conventional-commit-re
   "\\(?:fixup!\\|squash!\\|amend!\\|Merge \\|Revert \\)\\|\
 [a-z]+\\(?:([a-z0-9./-]+)\\)?!?: [^A-Z].\\{2,\\}$"
@@ -698,6 +706,14 @@ FORCE is non-nil with a prefix argument and skips the check."
 
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (add-to-list 'tramp-completion-multi-hop-methods "ssh")
+
+  ;; git finds no repo in $HOME; "yadm enter" exports GIT_DIR and GIT_WORK_TREE
+  (add-to-list 'tramp-methods
+               '("yadm"
+                 (tramp-login-program "yadm")
+                 (tramp-login-args (("enter")))
+                 (tramp-remote-shell "/bin/sh")
+                 (tramp-remote-shell-args ("-c"))))
 
   ;; reuse the open connection; tramp falls back on its own for multi-hop
   (connection-local-set-profile-variables
