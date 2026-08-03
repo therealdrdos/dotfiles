@@ -1,1 +1,0 @@
-../yadm/alt/.config/emacs/init.el##class.regular
